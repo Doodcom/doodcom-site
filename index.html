@@ -52,6 +52,7 @@ nav .wrap { display: flex; align-items: center; justify-content: space-between; 
 .logo .t { opacity: var(--letters); }
 /* intro, as the app opens */
 #intro { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: grid; place-items: center; cursor: pointer; }
+#intro[hidden] { display: none; }
 #intro .logo { font-size: clamp(60px, 17vmin, 170px); pointer-events: none; }
 .logo span.p { color: var(--lime); margin-left: .25em; }
 .links { display: flex; gap: 26px; align-items: center; font-size: 15px; }
@@ -74,6 +75,7 @@ nav .wrap { display: flex; align-items: center; justify-content: space-between; 
 .tv .screen { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 16/9; background: #000; }
 .tv .screen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .9s ease; }
 .tv .screen img.on { opacity: 1; }
+.tv .screen video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .tv::after { content: ""; position: absolute; left: 50%; bottom: -26px; width: 28%; height: 6px; transform: translateX(-50%); background: #1a1a15; border-radius: 0 0 8px 8px; }
 .float { animation: float 7s ease-in-out infinite; }
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
@@ -340,11 +342,11 @@ footer .logo { font-size: 24px; margin-bottom: 8px; }
       <img class="peek b" src="/img/posters/p8.webp" alt="">
       <div class="tv float">
         <div class="livepill"><i></i>LIVE</div>
-        <div class="screen" id="hero-screens">
-          <img class="on" src="/img/home.webp" alt="Doodcom Player home screen with live TV and the latest films">
-          <img src="/img/guide.webp" alt="The TV guide" loading="lazy">
-          <img src="/img/films.webp" alt="The films shelf" loading="lazy">
-          <img src="/img/series.webp" alt="The series shelf" loading="lazy">
+        <div class="screen">
+          <video id="promo" autoplay muted loop playsinline preload="auto" poster="/img/home.webp" aria-label="A tour of Doodcom Player: home, live TV, the guide, films, series and the player">
+            <source src="/img/promo.webm" type="video/webm">
+            <source src="/img/promo.mp4" type="video/mp4">
+          </video>
         </div>
       </div>
       <div class="glowbar"></div>
@@ -579,12 +581,13 @@ footer .logo { font-size: 24px; margin-bottom: 8px; }
     var seen = false;
     try { seen = sessionStorage.getItem('intro') === '1'; sessionStorage.setItem('intro', '1'); } catch (e) {}
     var el = document.getElementById('intro');
-    if (calm || seen || !el) { go(); return; }
+    if (calm || seen || !el) { if (el) el.remove(); go(); return; }
     el.hidden = false;
     var logo = el.querySelector('.logo'), t0 = performance.now(), done = false;
     function finish() { if (done) return; done = true; el.remove(); document.documentElement.style.overflow = ''; go(); }
     document.documentElement.style.overflow = 'hidden';
     el.addEventListener('click', finish);
+    setTimeout(finish, 3400);  // animation frames stop in a background tab; never leave the cover up
     addEventListener('keydown', finish, { once: true });
     (function frame(now) {
       if (done) return;
@@ -607,10 +610,8 @@ footer .logo { font-size: 24px; margin-bottom: 8px; }
   } else { els.forEach(function (e) { e.classList.add('in'); }); }
   });
 
-  var imgs = document.querySelectorAll('#hero-screens img'), i = 0;
-  setInterval(function () {
-    imgs[i].classList.remove('on'); i = (i + 1) % imgs.length; imgs[i].classList.add('on');
-  }, 3800);
+  var promo = document.getElementById('promo');
+  if (promo && calm) { promo.removeAttribute('autoplay'); promo.pause(); promo.controls = true; }
 
 
   var caps = [
