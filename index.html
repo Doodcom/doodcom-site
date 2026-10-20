@@ -3,23 +3,337 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Doodcom</title>
+<title>Doodcom Player: your IPTV, done properly</title>
+<meta name="description" content="Doodcom Player is a fast, simple player for the IPTV playlists you already have. TV guide, catch-up, films, series, recording and your phone as a remote, on Android TV, Fire TV, phones and tablets.">
+<meta name="theme-color" content="#0a0a08">
+<meta property="og:title" content="Doodcom Player">
+<meta property="og:description" content="A fast, simple player for your own IPTV playlists, with a TV guide and catch-up.">
+<meta property="og:image" content="https://doodcom.com/img/home.webp">
+<link rel="icon" href="/img/icon.png">
+<link rel="preload" href="/fonts/BigShouldersDisplay-Black.ttf" as="font" type="font/ttf" crossorigin>
 <style>
-  :root { --bg: #0d0d0b; --text: #e9e6dc; --dim: #a7a397; --accent: #ff6b4a; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.6 system-ui, sans-serif; }
-  main { max-width: 760px; margin: 0 auto; padding: 64px 16px; }
-  h1 { font-size: 44px; letter-spacing: 0.02em; margin: 0 0 8px; }
-  h1 span { color: var(--accent); }
-  p { color: var(--dim); }
-  a { color: var(--accent); }
+@font-face { font-family: "Big Shoulders"; src: url(/fonts/BigShouldersDisplay-Black.ttf); font-weight: 900; font-display: swap; }
+@font-face { font-family: "Plex"; src: url(/fonts/IBMPlexSans-Regular.ttf); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Plex"; src: url(/fonts/IBMPlexSans-SemiBold.ttf); font-weight: 600; font-display: swap; }
+:root {
+  --bg: #0a0a08; --panel: #141411; --line: #25251f; --text: #eef0e3; --dim: #a3a597;
+  --lime: #c8f432; --orange: #ff7a2f; --onlime: #11140a;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 18px/1.65 "Plex", system-ui, sans-serif; overflow-x: hidden; }
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 20px; }
+h1, h2, h3 { font-family: "Big Shoulders", Impact, sans-serif; font-weight: 900; text-transform: uppercase; line-height: .98; margin: 0; letter-spacing: .005em; }
+h1 { font-size: clamp(54px, 9vw, 112px); }
+h2 { font-size: clamp(38px, 5.5vw, 66px); }
+h3 { font-size: 28px; line-height: 1.05; }
+.lime { color: var(--lime); }
+.eyebrow { font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: var(--lime); font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.eyebrow::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--orange); }
+p { margin: 0 0 1em; color: var(--dim); }
+
+/* nav */
+nav { position: sticky; top: 0; z-index: 20; background: rgba(10,10,8,.92); border-bottom: 1px solid transparent; transition: border-color .3s; }
+nav.stuck { border-color: var(--line); }
+nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+.logo { font-family: "Big Shoulders", sans-serif; font-weight: 900; font-size: 30px; text-decoration: none; letter-spacing: .01em; display: flex; align-items: center; }
+.logo .eyes { display: inline-flex; gap: 2px; margin: 0 1px; }
+.logo .eyes i { width: 22px; height: 22px; border-radius: 50%; background: var(--lime); display: grid; place-items: center; }
+.logo .eyes i::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--bg); animation: look 6s infinite; }
+@keyframes look { 0%,40%,100% { transform: translate(0,0); } 50%,60% { transform: translate(3px,-1px); } 75%,85% { transform: translate(-3px,1px); } }
+.logo span.p { color: var(--lime); margin-left: 8px; }
+.links { display: flex; gap: 26px; align-items: center; font-size: 15px; }
+.links a { text-decoration: none; color: var(--dim); transition: color .2s; }
+.links a:hover { color: var(--text); }
+.btn { display: inline-flex; align-items: center; gap: 10px; background: var(--lime); color: var(--onlime) !important; font-weight: 600; text-decoration: none; padding: 14px 26px; border-radius: 999px; transition: transform .2s, box-shadow .2s; }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 -2px rgba(200,244,50,.25); }
+.btn.ghost { background: transparent; color: var(--text) !important; border: 1px solid #3a3a31; }
+.btn.small { padding: 9px 18px; font-size: 15px; }
+.soon { cursor: default; }
+.soon:hover { transform: none; box-shadow: none; }
+
+/* hero */
+.hero { padding: 64px 0 40px; position: relative; }
+.hero .wrap { display: grid; grid-template-columns: 1fr; gap: 48px; }
+.hero p.lead { font-size: 21px; max-width: 560px; color: #c4c6b8; margin: 26px 0 32px; }
+.ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+.note { font-size: 14px; margin-top: 18px; color: #7c7e72; }
+.tv { position: relative; border-radius: 18px; background: #000; border: 1px solid #2c2c24; padding: 10px; box-shadow: 0 40px 80px -30px rgba(0,0,0,.9), 0 0 0 1px #000; }
+.tv .screen { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 16/9; background: #000; }
+.tv .screen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .9s ease; }
+.tv .screen img.on { opacity: 1; }
+.tv::after { content: ""; position: absolute; left: 50%; bottom: -26px; width: 28%; height: 6px; transform: translateX(-50%); background: #1a1a15; border-radius: 0 0 8px 8px; }
+.float { animation: float 7s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.glowbar { height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--lime), var(--orange)); width: 120px; margin: 30px auto 0; animation: pulse 3s ease-in-out infinite; }
+@keyframes pulse { 50% { width: 200px; opacity: .6; } }
+@media (min-width: 960px) {
+  .hero .wrap { grid-template-columns: 1fr 1.25fr; align-items: center; gap: 56px; }
+}
+
+/* marquee */
+.marquee { border-block: 1px solid var(--line); margin: 56px 0 0; overflow: hidden; background: var(--panel); }
+.marquee .track { display: flex; width: max-content; animation: slide 40s linear infinite; }
+.marquee span { font-family: "Big Shoulders", sans-serif; font-weight: 900; font-size: 26px; text-transform: uppercase; padding: 18px 28px; color: #6e7064; white-space: nowrap; }
+.marquee span b { color: var(--lime); font-weight: 900; margin-left: 56px; }
+@keyframes slide { to { transform: translateX(-50%); } }
+
+section { padding: 96px 0 0; }
+.head { max-width: 720px; margin-bottom: 48px; }
+
+/* feature grid */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 26px; transition: transform .25s, border-color .25s; }
+.card:hover { transform: translateY(-4px); border-color: #4a5a1a; }
+.card .ic { width: 46px; height: 46px; border-radius: 12px; background: rgba(200,244,50,.12); display: grid; place-items: center; margin-bottom: 18px; }
+.card .ic svg { width: 24px; height: 24px; stroke: var(--lime); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.card h3 { margin-bottom: 8px; }
+.card p { margin: 0; font-size: 16px; }
+
+/* showcase */
+.show { display: grid; gap: 40px; align-items: center; margin-bottom: 96px; }
+.show:last-child { margin-bottom: 0; }
+.show .tv { transition: transform .4s; }
+.show:hover .tv { transform: translateY(-6px) scale(1.01); }
+@media (min-width: 900px) {
+  .show { grid-template-columns: 1fr 1.3fr; gap: 64px; }
+  .show.flip .tv { order: -1; }
+  .show.flip { grid-template-columns: 1.3fr 1fr; }
+}
+.show ul { list-style: none; padding: 0; margin: 20px 0 0; }
+.show li { padding-left: 28px; position: relative; margin-bottom: 8px; color: #c4c6b8; font-size: 17px; }
+.show li::before { content: ""; position: absolute; left: 0; top: .6em; width: 14px; height: 3px; background: var(--lime); border-radius: 2px; }
+
+/* devices */
+.devs { display: flex; flex-wrap: wrap; gap: 12px; }
+.devs span { border: 1px solid #34342b; border-radius: 999px; padding: 10px 20px; font-size: 16px; color: #c4c6b8; }
+
+/* privacy strip */
+.strip { background: var(--panel); border: 1px solid var(--line); border-radius: 26px; padding: 44px; display: grid; gap: 32px; }
+@media (min-width: 860px) { .strip { grid-template-columns: 1.2fr 1fr; align-items: center; } }
+.ticks { list-style: none; padding: 0; margin: 0; }
+.ticks li { display: flex; gap: 14px; margin-bottom: 14px; color: #c4c6b8; }
+.ticks li::before { content: "✓"; color: var(--onlime); background: var(--lime); border-radius: 50%; width: 24px; height: 24px; flex: none; display: grid; place-items: center; font-weight: 700; font-size: 14px; margin-top: 2px; }
+
+/* faq */
+details { border-bottom: 1px solid var(--line); padding: 22px 0; }
+summary { cursor: pointer; font-weight: 600; font-size: 19px; list-style: none; display: flex; justify-content: space-between; gap: 20px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; color: var(--lime); font-size: 26px; line-height: 1; transition: transform .25s; }
+details[open] summary::after { transform: rotate(45deg); }
+details p { margin: 14px 0 0; max-width: 760px; }
+
+/* cta + footer */
+.final { text-align: center; padding: 110px 0; }
+.final .ctas { justify-content: center; margin-top: 32px; }
+footer { border-top: 1px solid var(--line); padding: 36px 0 48px; font-size: 15px; color: #7c7e72; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 16px 32px; justify-content: space-between; }
+footer a { text-decoration: none; margin-right: 22px; }
+footer a:hover { color: var(--text); }
+
+/* reveal */
+.rv { opacity: 0; transform: translateY(28px); transition: opacity .8s ease, transform .8s ease; }
+.rv.in { opacity: 1; transform: none; }
+.d1 { transition-delay: .08s; } .d2 { transition-delay: .16s; } .d3 { transition-delay: .24s; }
+
+@media (max-width: 720px) {
+  .links a:not(.btn) { display: none; }
+  .logo { font-size: 26px; }
+  .logo .eyes i { width: 19px; height: 19px; }
+  .btn.small { white-space: nowrap; padding: 8px 14px; font-size: 14px; }
+  .strip { padding: 28px 22px; }
+  body { font-size: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .rv { opacity: 1; transform: none; }
+  html { scroll-behavior: auto; }
+}
 </style>
 </head>
 <body>
-<main>
-<h1>DOODCOM <span>PLAYER</span></h1>
-<p>A video player for the IPTV playlists you already have, on Android TV, phones and tablets.
-It doesn't come with any channels, films or series.</p>
-<p><a href="/privacy/">Privacy policy</a> · <a href="mailto:support@doodcom.com">support@doodcom.com</a></p>
-</main>
+
+<nav id="nav">
+  <div class="wrap">
+    <a class="logo" href="/" aria-label="Doodcom Player home">D<span class="eyes"><i></i><i></i></span>DCOM<span class="p">PLAYER</span></a>
+    <div class="links">
+      <a href="#features">Features</a>
+      <a href="#look">Screenshots</a>
+      <a href="#devices">Devices</a>
+      <a href="#faq">Questions</a>
+      <a class="btn small soon" href="#get">Play: soon</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow rv">Live now · TV · Films · Series</div>
+      <h1 class="rv d1">Your IPTV,<br><span class="lime">done properly.</span></h1>
+      <p class="lead rv d2">A fast, simple player for the playlists you already have. A proper TV guide, catch-up, films and series, recording, and your phone as a remote. Built for the sofa and a TV remote.</p>
+      <div class="ctas rv d3" id="get">
+        <a class="btn soon" href="#get">Coming soon to Google Play</a>
+        <a class="btn ghost" href="#look">See how it looks</a>
+      </div>
+      <p class="note rv d3">Doodcom Player doesn't come with any channels, films or series. You add your own playlist from a provider you already use.</p>
+    </div>
+    <div class="rv d2">
+      <div class="tv float">
+        <div class="screen" id="hero-screens">
+          <img class="on" src="/img/home.webp" alt="Doodcom Player home screen with live TV and the latest films">
+          <img src="/img/guide.webp" alt="The TV guide" loading="lazy">
+          <img src="/img/films.webp" alt="The films shelf" loading="lazy">
+          <img src="/img/live.webp" alt="Live TV" loading="lazy">
+        </div>
+      </div>
+      <div class="glowbar"></div>
+    </div>
+  </div>
+</header>
+
+<div class="marquee" aria-hidden="true">
+  <div class="track">
+    <span>Live TV <b>·</b></span><span>TV guide <b>·</b></span><span>Catch-up <b>·</b></span><span>Films <b>·</b></span><span>Series <b>·</b></span><span>Recording <b>·</b></span><span>Multi-view <b>·</b></span><span>Phone remote <b>·</b></span><span>Profiles <b>·</b></span><span>No adverts <b>·</b></span>
+    <span>Live TV <b>·</b></span><span>TV guide <b>·</b></span><span>Catch-up <b>·</b></span><span>Films <b>·</b></span><span>Series <b>·</b></span><span>Recording <b>·</b></span><span>Multi-view <b>·</b></span><span>Phone remote <b>·</b></span><span>Profiles <b>·</b></span><span>No adverts <b>·</b></span>
+  </div>
+</div>
+
+<section id="features">
+  <div class="wrap">
+    <div class="head rv">
+      <div class="eyebrow">What you get</div>
+      <h2>Everything you watch, <span class="lime">in one place.</span></h2>
+    </div>
+    <div class="grid">
+      <div class="card rv"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><h3>Live TV</h3><p>Channels by their logo, favourites and recently watched, with a preview that starts as you browse.</p></div>
+      <div class="card rv d1"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M9 5v14"/></svg></div><h3>A real TV guide</h3><p>See what's on now and next across every channel, and jump straight in.</p></div>
+      <div class="card rv d2"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></div><h3>Catch-up</h3><p>Missed it? Go back and watch on channels that support it.</p></div>
+      <div class="card rv"><div class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 3v18M16 3v18M4 8h4M4 16h4M16 8h4M16 16h4"/></svg></div><h3>Films &amp; series</h3><p>Posters, plots and ratings, with carry on where you left off.</p></div>
+      <div class="card rv d1"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="#c8f432"/></svg></div><h3>Recording</h3><p>Record what's on to your device and watch it whenever you like.</p></div>
+      <div class="card rv d2"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="7" rx="1"/><rect x="13" y="4" width="8" height="7" rx="1"/><rect x="3" y="13" width="8" height="7" rx="1"/><rect x="13" y="13" width="8" height="7" rx="1"/></svg></div><h3>Multi-view</h3><p>Watch more than one channel at the same time. Perfect for match day.</p></div>
+      <div class="card rv"><div class="ic"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div><h3>Phone as a remote</h3><p>Scan a code and use your phone to steer the player and type with its keyboard.</p></div>
+      <div class="card rv d1"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M17 6a3 3 0 0 1 0 6M18 15c2 .6 3.2 2.2 3.5 5"/></svg></div><h3>Profiles &amp; PIN</h3><p>Everyone at home gets their own space, with parental controls behind a PIN.</p></div>
+      <div class="card rv d2"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m12 8 3.5 2.5-1.3 4h-4.4l-1.3-4zM12 3v2M21 10l-2 .7M3 10l2 .7"/></svg></div><h3>Football scores</h3><p>Fixtures, live scores and tables, with a goal alert while you watch.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="look">
+  <div class="wrap">
+    <div class="head rv">
+      <div class="eyebrow">Take a look</div>
+      <h2>Made for the <span class="lime">big screen.</span></h2>
+      <p style="margin-top:18px">Dark, quick and easy to read from across the room. Every screen works with just up, down, left, right and OK. The pictures below use demo content, not real channels.</p>
+    </div>
+
+    <div class="show">
+      <div class="rv"><div class="eyebrow">Home</div><h2>Pick up<br>where you were.</h2>
+        <p style="margin-top:18px">Live TV on one side, your part-watched film or series on the other. One press and you're back in.</p>
+        <ul><li>Live now, with what's next</li><li>Carry on watching</li><li>Latest films and series</li></ul></div>
+      <div class="tv rv d1"><div class="screen"><img src="/img/home.webp" alt="Home screen" loading="lazy" style="opacity:1"></div></div>
+    </div>
+
+    <div class="show flip">
+      <div class="rv"><div class="eyebrow">TV guide</div><h2>See what's on,<br>all night.</h2>
+        <p style="margin-top:18px">A clear grid by channel and time, filtered by category. Pick a programme and press OK.</p>
+        <ul><li>Now and next at a glance</li><li>Categories and favourites</li><li>Catch-up where your provider offers it</li></ul></div>
+      <div class="tv rv d1"><div class="screen"><img src="/img/guide.webp" alt="TV guide" loading="lazy" style="opacity:1"></div></div>
+    </div>
+
+    <div class="show">
+      <div class="rv"><div class="eyebrow">Films &amp; series</div><h2>Shelves of<br>things to watch.</h2>
+        <p style="margin-top:18px">Posters, ratings and plots, searchable across everything. Even with a huge playlist, it stays quick.</p>
+        <ul><li>Ratings and trailers</li><li>Remembers your place</li><li>Search the whole catalogue</li></ul></div>
+      <div class="tv rv d1"><div class="screen"><img src="/img/films.webp" alt="Films" loading="lazy" style="opacity:1"></div></div>
+    </div>
+
+    <div class="show flip">
+      <div class="rv"><div class="eyebrow">Your setup</div><h2>Make it yours,<br>everywhere.</h2>
+        <p style="margin-top:18px">Pick from eleven colours and five backgrounds. Your setup can follow you to every device with a free Doodcom account, if you want one.</p>
+        <ul><li>Optional account, free to delete any time</li><li>Playlists and favourites sync</li><li>Works fine without one</li></ul></div>
+      <div class="tv rv d1"><div class="screen"><img src="/img/settings.webp" alt="Settings" loading="lazy" style="opacity:1"></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="devices">
+  <div class="wrap">
+    <div class="head rv">
+      <div class="eyebrow">Works on</div>
+      <h2>The screens <span class="lime">you own.</span></h2>
+    </div>
+    <div class="devs rv">
+      <span>Android TV</span><span>Fire TV sticks</span><span>Formuler &amp; set-top boxes</span><span>NVIDIA Shield</span><span>Android phones</span><span>Android tablets</span>
+    </div>
+  </div>
+</section>
+
+<section id="privacy">
+  <div class="wrap">
+    <div class="strip rv">
+      <div>
+        <div class="eyebrow">Privacy</div>
+        <h2>Your business.<br><span class="lime">Not ours.</span></h2>
+      </div>
+      <ul class="ticks">
+        <li>No adverts and no tracking.</li>
+        <li>Your playlists stay on your device unless you choose to sync.</li>
+        <li>We never sell or share your information.</li>
+        <li>Delete your account any time, from the app or the web.</li>
+      </ul>
+    </div>
+    <p style="margin-top:22px"><a href="/privacy/" class="lime">Read the privacy policy</a> · <a href="/delete-account/" class="lime">Delete your account</a></p>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="head rv"><div class="eyebrow">Questions</div><h2>Good to know.</h2></div>
+    <div class="rv">
+      <details><summary>Does it come with channels?</summary><p>No. Doodcom Player is a media player only. You add the playlist (Xtream Codes or M3U) from a provider you already use. Please only add playlists you have the right to watch.</p></details>
+      <details><summary>How much does it cost?</summary><p>Pricing will be on the Google Play page when the app is released. There are no adverts.</p></details>
+      <details><summary>Do I need an account?</summary><p>No. An account is optional and only used to bring your setup to your other devices. Without one, everything stays on your device.</p></details>
+      <details><summary>Which devices does it work on?</summary><p>Android TV boxes, Fire TV sticks, Formuler boxes, the NVIDIA Shield, and Android phones and tablets.</p></details>
+      <details><summary>How do I delete my account?</summary><p>In the app go to Settings, then Sync, then Delete account. You can also follow the steps on the <a class="lime" href="/delete-account/">delete account page</a>.</p></details>
+      <details><summary>I need help.</summary><p>Email <a class="lime" href="mailto:support@doodcom.com">support@doodcom.com</a> and we'll get back to you.</p></details>
+    </div>
+  </div>
+</section>
+
+<div class="final wrap">
+  <h2 class="rv">Ready when <span class="lime">you are.</span></h2>
+  <div class="ctas rv d1"><a class="btn soon" href="#get">Coming soon to Google Play</a><a class="btn ghost" href="mailto:support@doodcom.com">Get in touch</a></div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div>© 2026 Doodcom, United Kingdom</div>
+    <div><a href="/privacy/">Privacy</a><a href="/delete-account/">Delete account</a><a href="mailto:support@doodcom.com">support@doodcom.com</a></div>
+  </div>
+  <div class="wrap" style="margin-top:14px"><div style="font-size:13px">Doodcom Player is a media player only and provides no content. Google Play is a trademark of Google LLC.</div></div>
+</footer>
+
+<script>
+(function () {
+  var nav = document.getElementById('nav');
+  addEventListener('scroll', function () { nav.classList.toggle('stuck', scrollY > 10); }, { passive: true });
+
+  var els = document.querySelectorAll('.rv');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: .12 });
+    els.forEach(function (e) { io.observe(e); });
+  } else { els.forEach(function (e) { e.classList.add('in'); }); }
+
+  var imgs = document.querySelectorAll('#hero-screens img'), i = 0;
+  setInterval(function () {
+    imgs[i].classList.remove('on'); i = (i + 1) % imgs.length; imgs[i].classList.add('on');
+  }, 3800);
+})();
+</script>
 </body>
 </html>
