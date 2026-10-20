@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>My account · Doodcom</title>
+<link rel="icon" href="/img/icon.png">
+<style>
+@font-face { font-family: "Big Shoulders"; src: url(/fonts/BigShouldersDisplay-Black.ttf); font-weight: 900; font-display: swap; }
+@font-face { font-family: "Plex"; src: url(/fonts/IBMPlexSans-Regular.ttf); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Plex"; src: url(/fonts/IBMPlexSans-SemiBold.ttf); font-weight: 600; font-display: swap; }
+:root { --bg: #0a0a08; --panel: #141411; --line: #25251f; --text: #eef0e3; --dim: #a3a597; --lime: #c8f432; --orange: #ff7a2f; --onlime: #11140a; --bad: #ff6b5a; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.6 "Plex", system-ui, sans-serif; }
+main { max-width: 640px; margin: 0 auto; padding: 32px 16px 64px; }
+a { color: var(--lime); }
+.logo { font-family: "Big Shoulders", sans-serif; font-weight: 900; font-size: 28px; text-decoration: none; color: var(--text); display: inline-flex; align-items: center; }
+.logo .eyes { display: inline-flex; margin: 0 .03em; } .logo .eyes i { width: .72em; height: .72em; margin: 0 .045em; border-radius: 50%; background: var(--lime); display: grid; place-items: center; }
+.logo .eyes i::after { content: ""; width: .3em; height: .3em; border-radius: 50%; background: var(--bg); transform: translateX(.09em); }
+.logo .p { color: var(--lime); margin-left: .25em; }
+h1 { font-family: "Big Shoulders", sans-serif; font-weight: 900; text-transform: uppercase; font-size: 44px; line-height: 1; margin: 34px 0 8px; }
+h2 { font-size: 13px; letter-spacing: .2em; text-transform: uppercase; color: var(--dim); margin: 0 0 14px; font-weight: 600; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 24px; margin-top: 18px; }
+label { display: block; font-size: 14px; color: var(--dim); margin: 14px 0 6px; }
+input { width: 100%; font: inherit; color: var(--text); background: #1d1d19; border: 1px solid #34342b; border-radius: 12px; padding: 12px 14px; }
+input:focus { outline: 2px solid var(--lime); outline-offset: 1px; }
+button { font: 600 16px "Plex", sans-serif; border: 0; border-radius: 999px; padding: 12px 22px; cursor: pointer; margin-top: 16px; }
+button.main { background: var(--lime); color: var(--onlime); }
+button.soft { background: transparent; color: var(--text); border: 1px solid #3a3a31; }
+button.danger { background: transparent; color: var(--bad); border: 1px solid #5a2a24; }
+button:disabled { opacity: .5; cursor: default; }
+.row { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row small { color: var(--dim); display: block; }
+.row button { margin: 0; padding: 8px 16px; font-size: 14px; }
+.note { color: var(--dim); font-size: 15px; }
+.msg { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: rgba(200,244,50,.10); }
+.msg.bad { background: rgba(255,107,90,.12); color: #ffb4aa; }
+.plan { font-family: "Big Shoulders", sans-serif; font-weight: 900; font-size: 30px; text-transform: uppercase; }
+.lime { color: var(--lime); }
+[hidden] { display: none !important; }
+footer { margin-top: 40px; font-size: 14px; color: #7c7e72; }
+footer a { color: #7c7e72; margin-right: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="logo" href="/" aria-label="Doodcom home"><span>D</span><span class="eyes"><i></i><i></i></span><span>DCOM</span><span class="p">PLAYER</span></a>
+  <h1>My <span class="lime">account</span></h1>
+  <p class="note" id="lead">Sign in with the email and password you use in the Doodcom Player app.</p>
+
+  <!-- Signed out -->
+  <section class="card" id="signin">
+    <h2>Sign in</h2>
+    <form id="signin-form">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" required>
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <button class="main" type="submit">Sign in</button>
+      <button class="soft" type="button" id="forgot">Forgot password?</button>
+    </form>
+    <div id="signin-msg" class="msg" hidden></div>
+    <p class="note" style="margin-top:18px">No account yet? Create one free in the Doodcom Player app: Settings, then Sync.</p>
+  </section>
+
+  <!-- Forgotten password: a code by email, then a new password -->
+  <section class="card" id="reset" hidden>
+    <h2>Reset your password</h2>
+    <form id="reset-ask">
+      <label for="reset-email">Email</label>
+      <input id="reset-email" type="email" autocomplete="email" required>
+      <button class="main" type="submit">Email me a code</button>
+      <button class="soft" type="button">Back</button>
+    </form>
+    <form id="reset-set" hidden>
+      <p class="note">We've emailed you a code. It may take a minute; check your junk folder too.</p>
+      <label for="reset-code">Code</label>
+      <input id="reset-code" inputmode="numeric" autocomplete="one-time-code" required>
+      <label for="reset-password">New password (at least 6 characters)</label>
+      <input id="reset-password" type="password" autocomplete="new-password" minlength="6" required>
+      <button class="main" type="submit">Set new password</button>
+    </form>
+    <div id="reset-msg" class="msg" hidden></div>
+  </section>
+
+  <!-- Signed in -->
+  <div id="account" hidden>
+    <section class="card">
+      <h2>Signed in as</h2>
+      <div id="who" style="font-weight:600"></div>
+      <button class="soft" id="signout">Sign out</button>
+    </section>
+
+    <section class="card">
+      <h2>Your plan</h2>
+      <div class="plan" id="plan">…</div>
+      <p class="note" id="plan-note"></p>
+      <p class="note" style="margin-bottom:0">Monthly and yearly plans are paid and cancelled through Google Play:
+        <a href="https://play.google.com/store/account/subscriptions" target="_blank" rel="noopener">Manage subscriptions</a>.</p>
+    </section>
+
+    <section class="card">
+      <h2>Your devices</h2>
+      <p class="note">Pro works on up to 5 devices signed in to this account. You can remove 2 every 30 days, to make room for a new one.</p>
+      <div id="devices"></div>
+      <p class="note" id="removals"></p>
+      <div id="devices-msg" class="msg" hidden></div>
+    </section>
+
+    <section class="card">
+      <h2>Change password</h2>
+      <form id="pw-form">
+        <label for="new-password">New password (at least 6 characters)</label>
+        <input id="new-password" type="password" autocomplete="new-password" minlength="6" required>
+        <button class="main" type="submit">Change password</button>
+      </form>
+      <div id="pw-msg" class="msg" hidden></div>
+    </section>
+
+    <section class="card">
+      <h2>Change email</h2>
+      <form id="email-form">
+        <label for="new-email">New email</label>
+        <input id="new-email" type="email" autocomplete="email" required>
+        <button class="main" type="submit">Change email</button>
+      </form>
+      <div id="email-msg" class="msg" hidden></div>
+    </section>
+
+    <section class="card">
+      <h2>Delete account</h2>
+      <p class="note">Deletes your Doodcom account and everything synced to it, straight away and for good. Pro bought through Google Play stays with your Google account; cancel any subscription in Google Play.</p>
+      <label for="confirm-delete">Type DELETE to confirm</label>
+      <input id="confirm-delete" autocomplete="off">
+      <button class="danger" id="delete" disabled>Delete my account</button>
+      <div id="delete-msg" class="msg" hidden></div>
+    </section>
+  </div>
+
+  <footer><a href="/">Doodcom Player</a><a href="/privacy/">Privacy</a><a href="mailto:support@doodcom.com">support@doodcom.com</a></footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+  // The public address and key every Doodcom app ships with: on their own they can only sign in,
+  // and the server keeps each account to its own data.
+  var URL_ = 'https://bypxzoyyrcirzsrmxjmj.supabase.co', KEY = 'sb_publishable_S3Tgb-hHsJ4j2GQ4qTjYnA_qlL1j4w0';
+  var sb = supabase.createClient(URL_, KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+  var $ = function (id) { return document.getElementById(id); };
+
+  function say(id, text, bad) {
+    var el = $(id);
+    el.textContent = text || '';
+    el.hidden = !text;
+    el.classList.toggle('bad', !!bad);
+  }
+  function words(error) {
+    var m = (error && (error.message || error.error)) || 'Something went wrong. Try again in a moment.';
+    if (/invalid login credentials/i.test(m)) return 'That email and password don\'t match.';
+    if (/expired|invalid.*token|otp/i.test(m)) return 'That code has expired or isn\'t right. Ask for a new one.';
+    if (/password should be/i.test(m)) return 'Choose a password of at least 6 characters.';
+    if (/rate limit|too many/i.test(m)) return 'Too many tries just now. Wait a few minutes, then try again.';
+    return m;
+  }
+  function date(iso) { return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); }
+
+  function show(signedIn) {
+    $('signin').hidden = signedIn;
+    $('reset').hidden = true;
+    $('account').hidden = !signedIn;
+    $('lead').hidden = signedIn;
+  }
+
+  // Doodcom's Pro server: the plan, and the devices on the account.
+  async function pro(body) {
+    var session = (await sb.auth.getSession()).data.session;
+    var r = await fetch(URL_ + '/functions/v1/play-pro', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: KEY, Authorization: 'Bearer ' + session.access_token },
+      body: JSON.stringify(body),
+    });
+    var j = await r.json().catch(function () { return {}; });
+    if (!r.ok) throw new Error(j.error || 'The Pro service didn\'t answer.');
+    return j;
+  }
+
+  function drawDevices(j) {
+    var list = $('devices');
+    list.textContent = '';
+    if (!j.devices || !j.devices.length) {
+      list.innerHTML = '<p class="note">No devices are using Pro yet.</p>';
+    }
+    (j.devices || []).forEach(function (d) {
+      var row = document.createElement('div');
+      row.className = 'row';
+      var info = document.createElement('div');
+      info.textContent = d.name;
+      var seen = document.createElement('small');
+      seen.textContent = d.lastSeen ? 'Last used ' + date(d.lastSeen) : '';
+      info.appendChild(seen);
+      var b = document.createElement('button');
+      b.className = 'soft';
+      b.textContent = 'Remove';
+      b.disabled = !(j.removalsLeft > 0);
+      b.onclick = async function () {
+        if (!confirm('Remove ' + d.name + ' from your Pro?')) return;
+        b.disabled = true;
+        try {
+          drawDevices(await pro({ action: 'remove', remove: d.id }));
+          say('devices-msg', d.name + ' was removed.');
+        } catch (e) { say('devices-msg', words(e), true); b.disabled = false; }
+      };
+      row.appendChild(info);
+      row.appendChild(b);
+      list.appendChild(row);
+    });
+    $('removals').textContent = j.removalsLeft > 0
+      ? 'You can remove ' + j.removalsLeft + ' more ' + (j.removalsLeft === 1 ? 'device' : 'devices') + ' in the next 30 days.'
+      : 'You\'ve removed 2 devices in the last 30 days. You can remove another later.';
+  }
+
+  async function load() {
+    var user = (await sb.auth.getUser()).data.user;
+    if (!user) return show(false);
+    show(true);
+    $('who').textContent = user.email;
+    $('plan').textContent = '…';
+    try {
+      var j = await pro({ action: 'account' });
+      var current = (j.plans || []).filter(function (p) { return p.current; });
+      var best = current.find(function (p) { return p.tier === 'lifetime'; }) || current[0];
+      if (!best) {
+        $('plan').textContent = 'Free';
+        $('plan-note').textContent = 'Get Pro in the Doodcom Player app: Settings, then Pro.';
+      } else {
+        $('plan').textContent = best.tier === 'lifetime' ? 'Pro · lifetime' : best.tier === 'year' ? 'Pro · yearly' : 'Pro · monthly';
+        $('plan-note').textContent = best.tier === 'lifetime' ? 'Yours for good. Thank you!' : 'Paid up until ' + date(best.expires) + '.';
+      }
+      drawDevices(j);
+    } catch (e) {
+      $('plan').textContent = 'Free';
+      $('plan-note').textContent = 'Pro details aren\'t available just now.';
+      $('devices').innerHTML = '<p class="note">Your devices aren\'t available just now.</p>';
+    }
+  }
+
+  $('signin-form').onsubmit = async function (e) {
+    e.preventDefault();
+    say('signin-msg', '');
+    var r = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('password').value });
+    if (r.error) return say('signin-msg', words(r.error), true);
+    $('password').value = '';
+    load();
+  };
+  $('signout').onclick = async function () { await sb.auth.signOut(); show(false); };
+
+  $('forgot').onclick = function () {
+    $('signin').hidden = true; $('reset').hidden = false;
+    $('reset-ask').hidden = false; $('reset-set').hidden = true;
+    $('reset-email').value = $('email').value;
+    say('reset-msg', '');
+  };
+  document.querySelector('#reset-ask .soft').onclick = function () { show(false); };
+  $('reset-ask').onsubmit = async function (e) {
+    e.preventDefault();
+    var r = await sb.auth.resetPasswordForEmail($('reset-email').value.trim());
+    if (r.error) return say('reset-msg', words(r.error), true);
+    $('reset-ask').hidden = true; $('reset-set').hidden = false; say('reset-msg', '');
+  };
+  $('reset-set').onsubmit = async function (e) {
+    e.preventDefault();
+    var v = await sb.auth.verifyOtp({ email: $('reset-email').value.trim(), token: $('reset-code').value.trim(), type: 'recovery' });
+    if (v.error) return say('reset-msg', words(v.error), true);
+    var u = await sb.auth.updateUser({ password: $('reset-password').value });
+    if (u.error) return say('reset-msg', words(u.error), true);
+    $('reset-password').value = '';
+    load();
+  };
+
+  $('pw-form').onsubmit = async function (e) {
+    e.preventDefault();
+    var r = await sb.auth.updateUser({ password: $('new-password').value });
+    $('new-password').value = '';
+    say('pw-msg', r.error ? words(r.error) : 'Your password has been changed. Use the new one in the app next time you sign in.', !!r.error);
+  };
+  $('email-form').onsubmit = async function (e) {
+    e.preventDefault();
+    var r = await sb.auth.updateUser({ email: $('new-email').value.trim() });
+    if (r.error) return say('email-msg', words(r.error), true);
+    var now = r.data && r.data.user && r.data.user.email;
+    say('email-msg', now === $('new-email').value.trim()
+      ? 'Your email is now ' + now + '. Use it to sign in from now on.'
+      : 'Check your email: we\'ve sent a link to confirm the change.');
+    load();
+  };
+
+  $('confirm-delete').oninput = function () { $('delete').disabled = this.value.trim() !== 'DELETE'; };
+  $('delete').onclick = async function () {
+    if (!confirm('Delete your Doodcom account for good?')) return;
+    this.disabled = true;
+    var r = await sb.rpc('delete_my_account');
+    if (r.error) { this.disabled = false; return say('delete-msg', words(r.error), true); }
+    await sb.auth.signOut();
+    show(false);
+    say('signin-msg', 'Your account has been deleted.');
+  };
+
+  load();
+})();
+</script>
+</body>
+</html>
