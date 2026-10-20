@@ -8,7 +8,13 @@
 <meta name="theme-color" content="#0a0a08">
 <meta property="og:title" content="Doodcom Player">
 <meta property="og:description" content="A fast, simple player for your own IPTV playlists, with a TV guide and catch-up.">
-<meta property="og:image" content="https://doodcom.com/img/home.webp">
+<meta property="og:image" content="https://doodcom.com/img/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://doodcom.com/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://doodcom.com/">
 <link rel="icon" href="/img/icon.png">
 <link rel="preload" href="/fonts/BigShouldersDisplay-Black.ttf" as="font" type="font/ttf" crossorigin>
 <style>
@@ -39,11 +45,15 @@ nav { position: sticky; top: 0; z-index: 20; background: rgba(10,10,8,.92); bord
 nav.stuck { border-color: var(--line); }
 nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 68px; }
 .logo { font-family: "Big Shoulders", sans-serif; font-weight: 900; font-size: 30px; text-decoration: none; letter-spacing: .01em; display: flex; align-items: center; }
-.logo .eyes { display: inline-flex; gap: 2px; margin: 0 1px; }
-.logo .eyes i { width: 22px; height: 22px; border-radius: 50%; background: var(--lime); display: grid; place-items: center; }
-.logo .eyes i::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--bg); animation: look 6s infinite; }
-@keyframes look { 0%,40%,100% { transform: translate(0,0); } 50%,60% { transform: translate(3px,-1px); } 75%,85% { transform: translate(-3px,1px); } }
-.logo span.p { color: var(--lime); margin-left: 8px; }
+.logo { --look: .42; --open: 1; --letters: 1; }
+.logo .eyes { display: inline-flex; margin: 0 .03em; }
+.logo .eyes i { width: .72em; height: .72em; margin: 0 .045em; border-radius: 50%; background: var(--lime); display: grid; place-items: center; transform: scaleY(max(.06, var(--open))); }
+.logo .eyes i::after { content: ""; width: .3em; height: .3em; border-radius: 50%; background: var(--bg); transform: translateX(calc(var(--look) * .209em)); }
+.logo .t { opacity: var(--letters); }
+/* intro, as the app opens */
+#intro { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: grid; place-items: center; cursor: pointer; }
+#intro .logo { font-size: clamp(60px, 17vmin, 170px); pointer-events: none; }
+.logo span.p { color: var(--lime); margin-left: .25em; }
 .links { display: flex; gap: 26px; align-items: center; font-size: 15px; }
 .links a { text-decoration: none; color: var(--dim); transition: color .2s; }
 .links a:hover { color: var(--text); }
@@ -55,7 +65,7 @@ nav .wrap { display: flex; align-items: center; justify-content: space-between; 
 .soon:hover { transform: none; box-shadow: none; }
 
 /* hero */
-.hero { padding: 64px 0 40px; position: relative; }
+.hero { padding: 64px 0 40px; position: relative; overflow-x: clip; }
 .hero .wrap { display: grid; grid-template-columns: 1fr; gap: 48px; }
 .hero p.lead { font-size: 21px; max-width: 560px; color: #c4c6b8; margin: 26px 0 32px; }
 .ctas { display: flex; gap: 14px; flex-wrap: wrap; }
@@ -82,29 +92,6 @@ nav .wrap { display: flex; align-items: center; justify-content: space-between; 
 
 section { padding: 96px 0 0; }
 .head { max-width: 720px; margin-bottom: 48px; }
-
-/* feature grid */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 26px; transition: transform .25s, border-color .25s; }
-.card:hover { transform: translateY(-4px); border-color: #4a5a1a; }
-.card .ic { width: 46px; height: 46px; border-radius: 12px; background: rgba(200,244,50,.12); display: grid; place-items: center; margin-bottom: 18px; }
-.card .ic svg { width: 24px; height: 24px; stroke: var(--lime); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.card h3 { margin-bottom: 8px; }
-.card p { margin: 0; font-size: 16px; }
-
-/* showcase */
-.show { display: grid; gap: 40px; align-items: center; margin-bottom: 96px; }
-.show:last-child { margin-bottom: 0; }
-.show .tv { transition: transform .4s; }
-.show:hover .tv { transform: translateY(-6px) scale(1.01); }
-@media (min-width: 900px) {
-  .show { grid-template-columns: 1fr 1.3fr; gap: 64px; }
-  .show.flip .tv { order: -1; }
-  .show.flip { grid-template-columns: 1.3fr 1fr; }
-}
-.show ul { list-style: none; padding: 0; margin: 20px 0 0; }
-.show li { padding-left: 28px; position: relative; margin-bottom: 8px; color: #c4c6b8; font-size: 17px; }
-.show li::before { content: ""; position: absolute; left: 0; top: .6em; width: 14px; height: 3px; background: var(--lime); border-radius: 2px; }
 
 /* devices */
 .devs { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -133,6 +120,171 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 16px 32px; justify-content: 
 footer a { text-decoration: none; margin-right: 22px; }
 footer a:hover { color: var(--text); }
 
+
+/* poster wall */
+.wall { padding: 96px 0 0; overflow: hidden; }
+.wall .row { display: flex; gap: 16px; width: max-content; margin-bottom: 16px; }
+.wall .row.a { animation: slide 70s linear infinite; }
+.wall .row.b { animation: slideback 80s linear infinite; }
+@keyframes slideback { from { transform: translateX(-50%); } to { transform: none; } }
+.wall .row img { width: 180px; height: 270px; border-radius: 12px; object-fit: cover; transition: transform .3s; }
+.wall .row img:hover { transform: scale(1.05); }
+.wall .fade { position: relative; }
+.wall .fade::before, .wall .fade::after { content: ""; position: absolute; top: 0; bottom: 0; width: 12vw; z-index: 2; pointer-events: none; }
+.wall .fade::before { left: 0; background: linear-gradient(90deg, var(--bg), transparent); }
+.wall .fade::after { right: 0; background: linear-gradient(-90deg, var(--bg), transparent); }
+@media (max-width: 720px) { .wall .row img { width: 120px; height: 180px; } }
+
+/* phone remote */
+.remote { display: grid; gap: 48px; align-items: center; }
+@media (min-width: 900px) { .remote { grid-template-columns: 1fr 1.2fr; gap: 64px; } }
+.duo { position: relative; display: flex; align-items: flex-end; justify-content: center; gap: 0; min-height: 420px; }
+.duo .tv { width: 78%; }
+.phone { position: absolute; right: 2%; bottom: -20px; width: 190px; height: 390px; border-radius: 32px; background: #050504; border: 2px solid #34342b; padding: 12px; box-shadow: 0 30px 60px -20px rgba(0,0,0,.95); z-index: 3; }
+.phone .ui { height: 100%; border-radius: 22px; background: #121210; display: flex; flex-direction: column; align-items: center; padding: 16px 12px; gap: 14px; }
+.phone .bar { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 11px; color: var(--dim); white-space: nowrap; }
+.phone .bar b { color: var(--lime); font-weight: 600; }
+.pad { position: relative; width: 140px; height: 140px; border-radius: 50%; background: #1d1d19; border: 1px solid #2c2c24; }
+.pad i { position: absolute; width: 0; height: 0; border: 8px solid transparent; transition: border-color .15s; }
+.pad i.u { top: 12px; left: 62px; border-bottom-color: #8a8c7f; } .pad i.d { bottom: 12px; left: 62px; border-top-color: #8a8c7f; }
+.pad i.l { left: 12px; top: 62px; border-right-color: #8a8c7f; } .pad i.r { right: 12px; top: 62px; border-left-color: #8a8c7f; }
+.pad i.u.hit { border-bottom-color: var(--lime); } .pad i.d.hit { border-top-color: var(--lime); }
+.pad i.l.hit { border-right-color: var(--lime); } .pad i.r.hit { border-left-color: var(--lime); }
+.pad .ok { position: absolute; inset: 40px; border-radius: 50%; background: var(--lime); color: var(--onlime); font-weight: 600; font-size: 15px; display: grid; place-items: center; transition: transform .15s; }
+.pad .ok.hit { transform: scale(.88); }
+.keys { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.keys span { font-size: 11px; color: var(--dim); border: 1px solid #2c2c24; border-radius: 999px; padding: 5px 0; text-align: center; white-space: nowrap; }
+.typebox { width: 100%; border-radius: 10px; background: #1d1d19; border: 1px solid #2c2c24; font-size: 12px; padding: 8px 10px; color: var(--text); min-height: 34px; }
+.typebox::after { content: "|"; color: var(--lime); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+@media (max-width: 720px) { .phone { width: 156px; height: 316px; right: 0; bottom: -40px; padding: 9px; } .phone .ui { padding: 12px 8px; gap: 12px; } .phone .bar, .keys span { font-size: 9.5px; } .keys { gap: 4px; } .pad { width: 110px; height: 110px; } .pad .ok { inset: 32px; } .pad i.u, .pad i.d { left: 47px; } .pad i.l, .pad i.r { top: 47px; } .duo { min-height: 300px; } .duo .tv { width: 88%; align-self: flex-start; } }
+
+
+/* hero depth */
+.hero::before { content: ""; position: absolute; inset: -80px 0 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(700px 420px at 78% 30%, rgba(200,244,50,.10), transparent 70%),
+    radial-gradient(500px 300px at 95% 80%, rgba(255,122,47,.08), transparent 70%),
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 56px 56px,
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 56px 56px;
+  -webkit-mask-image: linear-gradient(#000 55%, transparent); mask-image: linear-gradient(#000 55%, transparent); }
+.stage { position: relative; }
+.stage .peek { position: absolute; width: 23%; border-radius: 12px; box-shadow: 0 30px 50px -20px #000; z-index: 0; }
+.stage .peek.a { left: -9%; top: -16%; transform: rotate(-8deg); animation: float 8s ease-in-out infinite; }
+.stage .peek.b { right: -7%; bottom: -8%; transform: rotate(7deg); animation: float 9s ease-in-out -3s infinite; }
+.stage .tv { z-index: 1; }
+.livepill { position: absolute; top: -16px; right: 28px; z-index: 2; display: flex; align-items: center; gap: 8px; background: rgba(10,10,8,.85); border: 1px solid #34342b; border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600; letter-spacing: .14em; }
+.livepill i { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); animation: beat 1.4s ease-in-out infinite; }
+@keyframes beat { 50% { opacity: .3; transform: scale(.7); } }
+
+/* bento */
+.bento { display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(250px, auto); }
+.tile { position: relative; overflow: hidden; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 26px; display: flex; flex-direction: column; transition: border-color .3s, transform .3s; }
+.tile:hover { border-color: #4a5a1a; transform: translateY(-3px); }
+.tile h3 { margin-bottom: 6px; }
+.tile p { margin: 0; font-size: 16px; }
+.tile .art { flex: 1; min-height: 110px; position: relative; margin-bottom: 20px; }
+.t-guide { grid-column: span 2; grid-row: span 2; }
+.t-catch, .t-films { grid-column: span 2; }
+.t-films .art { min-height: 175px; }
+.t-guide .art { min-height: 250px; }
+.mv { grid-template-rows: 1fr 1fr; } .mv img { min-height: 0; }
+.tile .art:has(.mv) { min-height: 200px; max-height: 260px; }
+@media (max-width: 980px) { .bento { grid-template-columns: repeat(2, 1fr); } .t-guide { grid-row: auto; } }
+@media (max-width: 620px) { .bento { grid-template-columns: 1fr; } .t-guide, .t-catch, .t-films { grid-column: auto; } }
+
+/* mini guide */
+.mg { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 8px; }
+.mg .r { display: grid; grid-template-columns: 58px 1fr; gap: 8px; flex: 1; }
+.mg .ch { border-radius: 8px; background: #1d1d19; display: grid; place-items: center; font: 900 15px "Big Shoulders"; color: #8a8c7f; }
+.mg .pr { display: flex; gap: 6px; min-width: 0; overflow: hidden; }
+.mg .pr span { min-width: 0; }
+.mg .pr span { border-radius: 8px; background: #1d1d19; padding: 8px 10px; font-size: 13px; color: #c4c6b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mg .pr span.now { background: rgba(200,244,50,.14); color: var(--text); box-shadow: inset 3px 0 0 var(--lime); }
+.mg .line { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--orange); left: 34%; animation: nowline 14s linear infinite; }
+.mg .line::before { content: ""; position: absolute; top: -4px; left: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--orange); }
+@keyframes nowline { from { left: 30%; } to { left: 58%; } }
+.mg .r.hl .ch { background: var(--lime); color: var(--onlime); }
+
+/* multiview */
+.mv { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.mv img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; outline: 3px solid transparent; outline-offset: -3px; transition: outline-color .3s; }
+.mv img.on { outline-color: var(--lime); }
+
+/* goal toast */
+.goal { position: absolute; inset: 0; display: grid; place-items: center; }
+.goal .toast { background: #1d1d19; border: 1px solid #34342b; border-radius: 14px; padding: 12px 16px; width: 100%; animation: pop 4s ease-in-out infinite; }
+.goal .toast b { display: block; font: 900 26px "Big Shoulders"; color: var(--lime); letter-spacing: .02em; }
+.goal .toast small { color: var(--dim); font-size: 13px; }
+.goal .score { font: 900 30px "Big Shoulders"; color: var(--text); }
+@keyframes pop { 0%,8% { transform: translateY(16px) scale(.94); opacity: 0; } 18%,82% { transform: none; opacity: 1; } 92%,100% { transform: translateY(-10px); opacity: 0; } }
+
+/* rec */
+.rec { position: absolute; inset: 0; display: grid; place-items: center; }
+.rec div { display: flex; align-items: center; gap: 12px; font: 900 40px "Big Shoulders"; letter-spacing: .03em; }
+.rec i { width: 18px; height: 18px; border-radius: 50%; background: #ff4a3d; animation: beat 1.2s ease-in-out infinite; }
+
+/* profiles */
+.prof { height: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; align-content: center; }
+.prof span { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font: 900 22px "Big Shoulders"; color: var(--onlime); transition: transform .3s; }
+.prof span:nth-child(1) { background: var(--lime); } .prof span:nth-child(2) { background: var(--orange); }
+.prof span:nth-child(3) { background: #7cc6ff; } .prof span:nth-child(4) { background: #2a2a24; color: var(--dim); border: 1px dashed #4a4a40; }
+.tile:hover .prof span { transform: translateY(-4px); }
+.prof em { flex-basis: 100%; margin-top: 6px; text-align: center; font-style: normal; font-size: 13px; color: var(--dim); }
+
+/* catch-up scrubber */
+.cu { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+.cu .meta { display: flex; justify-content: space-between; font-size: 13px; color: var(--dim); }
+.cu .meta b { color: var(--text); font-weight: 600; }
+.cu .track { position: relative; height: 8px; border-radius: 8px; background: #26261f; }
+.cu .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 8px; background: var(--lime); animation: rewind 6s ease-in-out infinite; }
+.cu .knob { position: absolute; top: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; background: var(--text); animation: rewindk 6s ease-in-out infinite; }
+.cu .live { position: absolute; right: -2px; top: 16px; font-size: 11px; letter-spacing: .14em; color: var(--orange); font-weight: 600; }
+@keyframes rewind { 0%,15% { width: 96%; } 45%,85% { width: 28%; } 100% { width: 96%; } }
+@keyframes rewindk { 0%,15% { left: 96%; } 45%,85% { left: 28%; } 100% { left: 96%; } }
+.cu .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.cu .chips span { font-size: 12px; border: 1px solid #34342b; border-radius: 999px; padding: 4px 10px; color: #c4c6b8; }
+
+/* poster fan */
+.fan { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; }
+.fan img { width: 88px; height: 132px; border-radius: 10px; object-fit: cover; margin: 0 -18px; box-shadow: 0 18px 30px -12px #000; transition: transform .45s cubic-bezier(.2,.8,.2,1), margin .45s; }
+.fan img:nth-child(1) { transform: rotate(-14deg) translateY(14px); } .fan img:nth-child(2) { transform: rotate(-7deg) translateY(4px); }
+.fan img:nth-child(3) { transform: translateY(-4px); z-index: 2; } .fan img:nth-child(4) { transform: rotate(7deg) translateY(4px); }
+.fan img:nth-child(5) { transform: rotate(14deg) translateY(14px); }
+.tile:hover .fan img { margin: 0 4px; }
+
+/* tabbed screenshots */
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+.tabs button { font: 600 15px "Plex", sans-serif; color: var(--dim); background: transparent; border: 1px solid #34342b; border-radius: 999px; padding: 10px 20px; cursor: pointer; transition: all .2s; }
+.tabs button:hover { color: var(--text); }
+.tabs button[aria-selected="true"] { background: var(--lime); border-color: var(--lime); color: var(--onlime); }
+.viewer { display: grid; gap: 36px; align-items: center; }
+@media (min-width: 900px) { .viewer { grid-template-columns: 1.5fr 1fr; gap: 56px; } }
+.viewer .tv .screen img { transform: scale(1.02); transition: opacity .6s ease, transform 1.2s ease; }
+.viewer .tv .screen img.on { transform: none; }
+.cap h3 { font-size: 40px; margin-bottom: 14px; }
+.cap ul { list-style: none; padding: 0; margin: 18px 0 0; }
+.cap li { padding-left: 28px; position: relative; margin-bottom: 8px; color: #c4c6b8; font-size: 17px; }
+.cap li::before { content: ""; position: absolute; left: 0; top: .6em; width: 14px; height: 3px; background: var(--lime); border-radius: 2px; }
+.cap .body { transition: opacity .3s; }
+.cap .body.out { opacity: 0; }
+.progress { height: 3px; border-radius: 3px; background: #26261f; margin-top: 26px; overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--lime); }
+.progress i.run { animation: fillbar 6s linear forwards; }
+@keyframes fillbar { to { width: 100%; } }
+
+/* steps */
+.steps { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); counter-reset: st; }
+.step { border-top: 2px solid #2c2c24; padding-top: 22px; position: relative; }
+.step::before { counter-increment: st; content: "0" counter(st); font: 900 64px/1 "Big Shoulders"; color: var(--lime); display: block; margin-bottom: 12px; }
+.step::after { content: ""; position: absolute; top: -2px; left: 0; width: 0; height: 2px; background: var(--lime); transition: width 1.2s ease .3s; }
+.step.in::after { width: 100%; }
+.step h3 { margin-bottom: 8px; }
+.step p { font-size: 16px; }
+
+footer .logo { font-size: 24px; margin-bottom: 8px; }
+
+
 /* reveal */
 .rv { opacity: 0; transform: translateY(28px); transition: opacity .8s ease, transform .8s ease; }
 .rv.in { opacity: 1; transform: none; }
@@ -141,9 +293,10 @@ footer a:hover { color: var(--text); }
 @media (max-width: 720px) {
   .links a:not(.btn) { display: none; }
   .logo { font-size: 26px; }
-  .logo .eyes i { width: 19px; height: 19px; }
+  
   .btn.small { white-space: nowrap; padding: 8px 14px; font-size: 14px; }
   .strip { padding: 28px 22px; }
+  .stage .peek { width: 26%; } .stage .peek.a { left: -2%; top: -12%; } .stage .peek.b { right: -2%; }
   body { font-size: 17px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -154,13 +307,15 @@ footer a:hover { color: var(--text); }
 </style>
 </head>
 <body>
+<div id="intro" hidden aria-hidden="true"><div class="logo"><span class="t">D</span><span class="eyes"><i></i><i></i></span><span class="t">DCOM</span><span class="p t">PLAYER</span></div></div>
 
 <nav id="nav">
   <div class="wrap">
-    <a class="logo" href="/" aria-label="Doodcom Player home">D<span class="eyes"><i></i><i></i></span>DCOM<span class="p">PLAYER</span></a>
+    <a class="logo" href="/" aria-label="Doodcom Player home"><span class="t">D</span><span class="eyes"><i></i><i></i></span><span class="t">DCOM</span><span class="p t">PLAYER</span></a>
     <div class="links">
       <a href="#features">Features</a>
       <a href="#look">Screenshots</a>
+      <a href="#remote">Remote</a>
       <a href="#devices">Devices</a>
       <a href="#faq">Questions</a>
       <a class="btn small soon" href="#get">Play: soon</a>
@@ -180,13 +335,16 @@ footer a:hover { color: var(--text); }
       </div>
       <p class="note rv d3">Doodcom Player doesn't come with any channels, films or series. You add your own playlist from a provider you already use.</p>
     </div>
-    <div class="rv d2">
+    <div class="rv d2 stage">
+      <img class="peek a" src="/img/posters/p2.webp" alt="">
+      <img class="peek b" src="/img/posters/p8.webp" alt="">
       <div class="tv float">
+        <div class="livepill"><i></i>LIVE</div>
         <div class="screen" id="hero-screens">
           <img class="on" src="/img/home.webp" alt="Doodcom Player home screen with live TV and the latest films">
           <img src="/img/guide.webp" alt="The TV guide" loading="lazy">
           <img src="/img/films.webp" alt="The films shelf" loading="lazy">
-          <img src="/img/live.webp" alt="Live TV" loading="lazy">
+          <img src="/img/series.webp" alt="The series shelf" loading="lazy">
         </div>
       </div>
       <div class="glowbar"></div>
@@ -201,22 +359,62 @@ footer a:hover { color: var(--text); }
   </div>
 </div>
 
+
+<div class="wall" aria-label="Example film and series artwork">
+  <div class="wrap head rv"><div class="eyebrow">Films &amp; series</div><h2>Your whole library, <span class="lime">beautifully laid out.</span></h2><p style="margin-top:18px">Posters, ratings and plots fill in by themselves. (These titles are made up for this page.)</p></div>
+  <div class="fade">
+    <div class="row a"><img src="/img/posters/p1.webp" alt="" loading="lazy"><img src="/img/posters/p2.webp" alt="" loading="lazy"><img src="/img/posters/p3.webp" alt="" loading="lazy"><img src="/img/posters/p4.webp" alt="" loading="lazy"><img src="/img/posters/p5.webp" alt="" loading="lazy"><img src="/img/posters/p6.webp" alt="" loading="lazy"><img src="/img/posters/p7.webp" alt="" loading="lazy"><img src="/img/posters/p8.webp" alt="" loading="lazy"><img src="/img/posters/p9.webp" alt="" loading="lazy"><img src="/img/posters/p10.webp" alt="" loading="lazy"><img src="/img/posters/p11.webp" alt="" loading="lazy"><img src="/img/posters/p12.webp" alt="" loading="lazy"><img src="/img/posters/p1.webp" alt="" loading="lazy"><img src="/img/posters/p2.webp" alt="" loading="lazy"><img src="/img/posters/p3.webp" alt="" loading="lazy"><img src="/img/posters/p4.webp" alt="" loading="lazy"><img src="/img/posters/p5.webp" alt="" loading="lazy"><img src="/img/posters/p6.webp" alt="" loading="lazy"><img src="/img/posters/p7.webp" alt="" loading="lazy"><img src="/img/posters/p8.webp" alt="" loading="lazy"><img src="/img/posters/p9.webp" alt="" loading="lazy"><img src="/img/posters/p10.webp" alt="" loading="lazy"><img src="/img/posters/p11.webp" alt="" loading="lazy"><img src="/img/posters/p12.webp" alt="" loading="lazy"></div>
+    <div class="row b"><img src="/img/posters/p7.webp" alt="" loading="lazy"><img src="/img/posters/p10.webp" alt="" loading="lazy"><img src="/img/posters/p2.webp" alt="" loading="lazy"><img src="/img/posters/p12.webp" alt="" loading="lazy"><img src="/img/posters/p5.webp" alt="" loading="lazy"><img src="/img/posters/p1.webp" alt="" loading="lazy"><img src="/img/posters/p9.webp" alt="" loading="lazy"><img src="/img/posters/p4.webp" alt="" loading="lazy"><img src="/img/posters/p11.webp" alt="" loading="lazy"><img src="/img/posters/p3.webp" alt="" loading="lazy"><img src="/img/posters/p8.webp" alt="" loading="lazy"><img src="/img/posters/p6.webp" alt="" loading="lazy"><img src="/img/posters/p7.webp" alt="" loading="lazy"><img src="/img/posters/p10.webp" alt="" loading="lazy"><img src="/img/posters/p2.webp" alt="" loading="lazy"><img src="/img/posters/p12.webp" alt="" loading="lazy"><img src="/img/posters/p5.webp" alt="" loading="lazy"><img src="/img/posters/p1.webp" alt="" loading="lazy"><img src="/img/posters/p9.webp" alt="" loading="lazy"><img src="/img/posters/p4.webp" alt="" loading="lazy"><img src="/img/posters/p11.webp" alt="" loading="lazy"><img src="/img/posters/p3.webp" alt="" loading="lazy"><img src="/img/posters/p8.webp" alt="" loading="lazy"><img src="/img/posters/p6.webp" alt="" loading="lazy"></div>
+  </div>
+</div>
+
 <section id="features">
   <div class="wrap">
     <div class="head rv">
       <div class="eyebrow">What you get</div>
       <h2>Everything you watch, <span class="lime">in one place.</span></h2>
     </div>
-    <div class="grid">
-      <div class="card rv"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><h3>Live TV</h3><p>Channels by their logo, favourites and recently watched, with a preview that starts as you browse.</p></div>
-      <div class="card rv d1"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M9 5v14"/></svg></div><h3>A real TV guide</h3><p>See what's on now and next across every channel, and jump straight in.</p></div>
-      <div class="card rv d2"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></div><h3>Catch-up</h3><p>Missed it? Go back and watch on channels that support it.</p></div>
-      <div class="card rv"><div class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 3v18M16 3v18M4 8h4M4 16h4M16 8h4M16 16h4"/></svg></div><h3>Films &amp; series</h3><p>Posters, plots and ratings, with carry on where you left off.</p></div>
-      <div class="card rv d1"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="#c8f432"/></svg></div><h3>Recording</h3><p>Record what's on to your device and watch it whenever you like.</p></div>
-      <div class="card rv d2"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="7" rx="1"/><rect x="13" y="4" width="8" height="7" rx="1"/><rect x="3" y="13" width="8" height="7" rx="1"/><rect x="13" y="13" width="8" height="7" rx="1"/></svg></div><h3>Multi-view</h3><p>Watch more than one channel at the same time. Perfect for match day.</p></div>
-      <div class="card rv"><div class="ic"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg></div><h3>Phone as a remote</h3><p>Scan a code and use your phone to steer the player and type with its keyboard.</p></div>
-      <div class="card rv d1"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M17 6a3 3 0 0 1 0 6M18 15c2 .6 3.2 2.2 3.5 5"/></svg></div><h3>Profiles &amp; PIN</h3><p>Everyone at home gets their own space, with parental controls behind a PIN.</p></div>
-      <div class="card rv d2"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m12 8 3.5 2.5-1.3 4h-4.4l-1.3-4zM12 3v2M21 10l-2 .7M3 10l2 .7"/></svg></div><h3>Football scores</h3><p>Fixtures, live scores and tables, with a goal alert while you watch.</p></div>
+    <div class="bento">
+      <div class="tile t-guide rv">
+        <div class="art"><div class="mg" aria-hidden="true">
+          <div class="r"><div class="ch">101</div><div class="pr"><span style="flex:1.2">Morning Live</span><span class="now" style="flex:2">The Big Match</span><span style="flex:1.4">World Report</span></div></div>
+          <div class="r hl"><div class="ch">102</div><div class="pr"><span class="now" style="flex:2.2">Nature Uncovered</span><span style="flex:1.6">Film Club</span><span style="flex:1">Headlines</span></div></div>
+          <div class="r"><div class="ch">103</div><div class="pr"><span style="flex:1">News</span><span class="now" style="flex:1.8">Late Night Show</span><span style="flex:2">Tech Today</span></div></div>
+          <div class="r"><div class="ch">104</div><div class="pr"><span class="now" style="flex:2.6">Wild Tide</span><span style="flex:1.6">Glass Valley</span></div></div>
+          <div class="r"><div class="ch">105</div><div class="pr"><span style="flex:1.4">Kids Club</span><span class="now" style="flex:1.6">Dust Road</span><span style="flex:1.6">Weather</span></div></div>
+          <div class="line"></div>
+        </div></div>
+        <h3>Live TV &amp; a real guide</h3>
+        <p>Channels by their logo, a preview that starts as you browse, and a full TV guide of what's on now and next.</p>
+      </div>
+      <div class="tile rv d1">
+        <div class="art"><div class="mv" id="mv" aria-hidden="true"><img class="on" src="/img/posters/p5.webp" alt=""><img src="/img/posters/p1.webp" alt=""><img src="/img/posters/p8.webp" alt=""><img src="/img/posters/p7.webp" alt=""></div></div>
+        <h3>Multi-view</h3><p>Several channels at once. Made for match day.</p>
+      </div>
+      <div class="tile rv d2">
+        <div class="art"><div class="goal" aria-hidden="true"><div class="toast"><b>Goal!</b><span class="score">2 – 1</span><br><small>Riverside v Harbour City · 67'</small></div></div></div>
+        <h3>Goal alerts</h3><p>Live scores and a heads-up while you watch.</p>
+      </div>
+      <div class="tile rv">
+        <div class="art"><div class="rec" aria-hidden="true"><div><i></i><span id="rec">00:12:34</span></div></div></div>
+        <h3>Recording</h3><p>Record what's on and watch it later.</p>
+      </div>
+      <div class="tile rv d1">
+        <div class="art"><div class="prof" aria-hidden="true"><span>A</span><span>J</span><span>M</span><span>+</span><em>🔒 Kids' profile behind a PIN</em></div></div>
+        <h3>Profiles</h3><p>Everyone gets their own space and favourites.</p>
+      </div>
+      <div class="tile t-catch rv">
+        <div class="art"><div class="cu" aria-hidden="true">
+          <div class="meta"><span><b>The Big Match</b> · Sports 1</span><span>Started 19:45</span></div>
+          <div class="track"><div class="fill"></div><div class="knob"></div><span class="live">LIVE</span></div>
+          <div class="chips"><span>◀◀ Back 30 min</span><span>Start from the beginning</span><span>Pause live TV</span></div>
+        </div></div>
+        <h3>Catch-up</h3><p>Missed the start? Go back and watch, on channels your provider records.</p>
+      </div>
+      <div class="tile t-films rv d1">
+        <div class="art"><div class="fan" aria-hidden="true"><img src="/img/posters/p4.webp" alt=""><img src="/img/posters/p6.webp" alt=""><img src="/img/posters/p1.webp" alt=""><img src="/img/posters/p10.webp" alt=""><img src="/img/posters/p12.webp" alt=""></div></div>
+        <h3>Films &amp; series</h3><p>Posters, plots, ratings and trailers, and it remembers where you stopped.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -226,35 +424,64 @@ footer a:hover { color: var(--text); }
     <div class="head rv">
       <div class="eyebrow">Take a look</div>
       <h2>Made for the <span class="lime">big screen.</span></h2>
-      <p style="margin-top:18px">Dark, quick and easy to read from across the room. Every screen works with just up, down, left, right and OK. The pictures below use demo content, not real channels.</p>
+      <p style="margin-top:18px">Dark, quick and easy to read from across the room. Every screen works with just up, down, left, right and OK. (Demo content, not real channels.)</p>
     </div>
-
-    <div class="show">
-      <div class="rv"><div class="eyebrow">Home</div><h2>Pick up<br>where you were.</h2>
-        <p style="margin-top:18px">Live TV on one side, your part-watched film or series on the other. One press and you're back in.</p>
-        <ul><li>Live now, with what's next</li><li>Carry on watching</li><li>Latest films and series</li></ul></div>
-      <div class="tv rv d1"><div class="screen"><img src="/img/home.webp" alt="Home screen" loading="lazy" style="opacity:1"></div></div>
+    <div class="tabs rv" role="tablist" id="tabs">
+      <button role="tab" aria-selected="true">Home</button>
+      <button role="tab" aria-selected="false">TV guide</button>
+      <button role="tab" aria-selected="false">Films</button>
+      <button role="tab" aria-selected="false">Series</button>
+      <button role="tab" aria-selected="false">Settings</button>
     </div>
-
-    <div class="show flip">
-      <div class="rv"><div class="eyebrow">TV guide</div><h2>See what's on,<br>all night.</h2>
-        <p style="margin-top:18px">A clear grid by channel and time, filtered by category. Pick a programme and press OK.</p>
-        <ul><li>Now and next at a glance</li><li>Categories and favourites</li><li>Catch-up where your provider offers it</li></ul></div>
-      <div class="tv rv d1"><div class="screen"><img src="/img/guide.webp" alt="TV guide" loading="lazy" style="opacity:1"></div></div>
+    <div class="viewer rv d1">
+      <div class="tv"><div class="screen" id="view">
+        <img class="on" src="/img/home.webp" alt="Home screen" loading="lazy">
+        <img src="/img/guide.webp" alt="TV guide" loading="lazy">
+        <img src="/img/films.webp" alt="Films" loading="lazy">
+        <img src="/img/series.webp" alt="Series" loading="lazy">
+        <img src="/img/settings.webp" alt="Settings" loading="lazy">
+      </div></div>
+      <div class="cap"><div class="body" id="cap"></div><div class="progress"><i id="bar"></i></div></div>
     </div>
+  </div>
+</section>
 
-    <div class="show">
-      <div class="rv"><div class="eyebrow">Films &amp; series</div><h2>Shelves of<br>things to watch.</h2>
-        <p style="margin-top:18px">Posters, ratings and plots, searchable across everything. Even with a huge playlist, it stays quick.</p>
-        <ul><li>Ratings and trailers</li><li>Remembers your place</li><li>Search the whole catalogue</li></ul></div>
-      <div class="tv rv d1"><div class="screen"><img src="/img/films.webp" alt="Films" loading="lazy" style="opacity:1"></div></div>
+<section id="how">
+  <div class="wrap">
+    <div class="head rv"><div class="eyebrow">Getting started</div><h2>Watching in <span class="lime">two minutes.</span></h2></div>
+    <div class="steps">
+      <div class="step rv"><h3>Install</h3><p>Get Doodcom Player from Google Play on your TV box, Fire TV, phone or tablet.</p></div>
+      <div class="step rv d1"><h3>Add your playlist</h3><p>Type in your provider's Xtream Codes login or M3U link. Use your phone's keyboard if you like.</p></div>
+      <div class="step rv d2"><h3>Watch</h3><p>Channels, the guide, films and series appear by themselves. Sit back.</p></div>
     </div>
+  </div>
+</section>
 
-    <div class="show flip">
-      <div class="rv"><div class="eyebrow">Your setup</div><h2>Make it yours,<br>everywhere.</h2>
-        <p style="margin-top:18px">Pick from eleven colours and five backgrounds. Your setup can follow you to every device with a free Doodcom account, if you want one.</p>
-        <ul><li>Optional account, free to delete any time</li><li>Playlists and favourites sync</li><li>Works fine without one</li></ul></div>
-      <div class="tv rv d1"><div class="screen"><img src="/img/settings.webp" alt="Settings" loading="lazy" style="opacity:1"></div></div>
+<section id="remote">
+  <div class="wrap remote">
+    <div class="rv">
+      <div class="eyebrow">Phone remote</div>
+      <h2>Your phone is<br><span class="lime">the remote.</span></h2>
+      <p style="margin-top:18px">Scan the code on the TV and your phone becomes a remote. Steer with the pad, and type searches and logins with your phone's keyboard instead of pecking at letters on screen.</p>
+      <ul class="ticks" style="margin-top:24px">
+        <li>No app to install: it opens in your phone's browser.</li>
+        <li>Works over your home Wi-Fi, nothing goes through the internet.</li>
+        <li>Play, pause, change channel and search.</li>
+      </ul>
+    </div>
+    <div class="duo rv d1">
+      <div class="tv"><div class="screen" id="duo-screens">
+        <img class="on" src="/img/home.webp" alt="Doodcom Player on the big screen" loading="lazy">
+        <img src="/img/guide.webp" alt="" loading="lazy">
+        <img src="/img/films.webp" alt="" loading="lazy">
+        <img src="/img/series.webp" alt="" loading="lazy">
+      </div></div>
+      <div class="phone" aria-hidden="true"><div class="ui">
+        <div class="bar"><span>Doodcom</span><b>● Linked</b></div>
+        <div class="pad" id="pad"><i class="u"></i><i class="d"></i><i class="l"></i><i class="r"></i><div class="ok">OK</div></div>
+        <div class="keys"><span>Back</span><span>Home</span><span>⏯</span></div>
+        <div class="typebox" id="typebox"></div>
+      </div></div>
     </div>
   </div>
 </section>
@@ -310,7 +537,7 @@ footer a:hover { color: var(--text); }
 
 <footer>
   <div class="wrap">
-    <div>© 2026 Doodcom, United Kingdom</div>
+    <div><a class="logo" href="/" aria-label="Doodcom Player home"><span class="t">D</span><span class="eyes"><i></i><i></i></span><span class="t">DCOM</span><span class="p t">PLAYER</span></a><div>© 2026 Doodcom, United Kingdom</div></div>
     <div><a href="/privacy/">Privacy</a><a href="/delete-account/">Delete account</a><a href="mailto:support@doodcom.com">support@doodcom.com</a></div>
   </div>
   <div class="wrap" style="margin-top:14px"><div style="font-size:13px">Doodcom Player is a media player only and provides no content. Google Play is a trademark of Google LLC.</div></div>
@@ -318,21 +545,123 @@ footer a:hover { color: var(--text); }
 
 <script>
 (function () {
+  function clamp(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+  function inOut(x) { x = clamp(x); return x * x * (3 - 2 * x); }
+  function out(x) { x = clamp(x); return 1 - (1 - x) * (1 - x); }
+  function introLook(t) {
+    function go(a, b, f, to) { return f + (to - f) * inOut((t - a) / (b - a)); }
+    if (t < .14) return 0; if (t < .26) return go(.14, .26, 0, -.45); if (t < .40) return go(.26, .40, -.45, .45);
+    if (t < .46) return go(.40, .46, .45, .42); if (t < .60) return .42; if (t < .70) return go(.60, .70, .42, -.45);
+    if (t < .82) return go(.70, .82, -.45, .45); if (t < .87) return go(.82, .87, .45, .42); return .42;
+  }
+  function introOpen(t) { if (t < .45) return out((t - .03) / .09); var d = Math.abs(t - .53); return d >= .03 ? 1 : d / .03; }
+  function logoLook(t) {
+    function go(a, b, f, to) { return f + (to - f) * inOut((t - a) / (b - a)); }
+    if (t < .18) return .42; if (t < .32) return go(.18, .32, .42, -.45); if (t < .55) return -.45; if (t < .69) return go(.55, .69, -.45, .42); return .42;
+  }
+  function logoBlink(t) { var d = Math.abs(t - .84); return d >= .035 ? 1 : d / .035; }
+  function set(el, look, open, letters) { el.style.setProperty('--look', look); el.style.setProperty('--open', open); if (letters != null) el.style.setProperty('--letters', letters); }
+  var calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // The nav logo glances about and blinks every so often, like the app's loading logo.
+  var navLogo = document.querySelector('nav .logo');
+  if (!calm) {
+    var start = performance.now();
+    (function tick(now) {
+      var t = ((now - start) % 9000) / 3200;     // one 3.2 s glance, then rest
+      if (t <= 1) set(navLogo, logoLook(t), logoBlink(t));
+      requestAnimationFrame(tick);
+    })(start);
+  }
+
+  // The opening, as the app does it: once per visit, and a click skips it.
+  function afterIntro(go) {
+    var seen = false;
+    try { seen = sessionStorage.getItem('intro') === '1'; sessionStorage.setItem('intro', '1'); } catch (e) {}
+    var el = document.getElementById('intro');
+    if (calm || seen || !el) { go(); return; }
+    el.hidden = false;
+    var logo = el.querySelector('.logo'), t0 = performance.now(), done = false;
+    function finish() { if (done) return; done = true; el.remove(); document.documentElement.style.overflow = ''; go(); }
+    document.documentElement.style.overflow = 'hidden';
+    el.addEventListener('click', finish);
+    addEventListener('keydown', finish, { once: true });
+    (function frame(now) {
+      if (done) return;
+      var t = Math.min(1, (now - t0) / 3000);
+      set(logo, introLook(t), introOpen(t), out((t - .24) / .22));
+      el.style.opacity = 1 - (t < .9 ? 0 : (t - .9) / .1) ** 2;
+      if (t >= 1) finish(); else requestAnimationFrame(frame);
+    })(t0);
+  }
   var nav = document.getElementById('nav');
   addEventListener('scroll', function () { nav.classList.toggle('stuck', scrollY > 10); }, { passive: true });
 
   var els = document.querySelectorAll('.rv');
+  afterIntro(function () {
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (es) {
       es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
     }, { threshold: .12 });
     els.forEach(function (e) { io.observe(e); });
   } else { els.forEach(function (e) { e.classList.add('in'); }); }
+  });
 
   var imgs = document.querySelectorAll('#hero-screens img'), i = 0;
   setInterval(function () {
     imgs[i].classList.remove('on'); i = (i + 1) % imgs.length; imgs[i].classList.add('on');
   }, 3800);
+
+
+  var caps = [
+    ['Pick up where you were.', 'Live TV on one side, your part-watched film or series on the other. One press and you\'re back in.', ['Live now, with what\'s next', 'Carry on watching', 'Latest films and series']],
+    ['See what\'s on, all night.', 'A clear grid by channel and time, filtered by category. Pick a programme and press OK.', ['Now and next at a glance', 'Categories and favourites', 'Catch-up where your provider offers it']],
+    ['Shelves of things to watch.', 'Posters, ratings and plots, searchable across everything. Even a huge playlist stays quick.', ['Ratings and trailers', 'Remembers your place', 'Search the whole catalogue']],
+    ['Every episode, in order.', 'Seasons and episodes laid out clearly, with the next one ready when you finish.', ['Next episode, ready to go', 'Watched episodes ticked off', 'Seasons at a glance']],
+    ['Make it yours, everywhere.', 'Eleven colours and five backgrounds. A free Doodcom account brings your setup to every device, if you want one.', ['Optional account, delete any time', 'Playlists and favourites sync', 'Works fine without one']]
+  ];
+  var tabs = document.querySelectorAll('#tabs button'), views = document.querySelectorAll('#view img'),
+      cap = document.getElementById('cap'), bar = document.getElementById('bar'), cur = 0, auto = true, timer;
+  function esc(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+  function show(n) {
+    tabs[cur].setAttribute('aria-selected', 'false'); views[cur].classList.remove('on');
+    cur = n; tabs[cur].setAttribute('aria-selected', 'true'); views[cur].classList.add('on');
+    cap.classList.add('out');
+    setTimeout(function () {
+      var c = caps[cur];
+      cap.innerHTML = '<h3>' + esc(c[0]) + '</h3><p>' + esc(c[1]) + '</p><ul>' + c[2].map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
+      cap.classList.remove('out');
+    }, 200);
+    bar.classList.remove('run'); void bar.offsetWidth;
+    if (auto) bar.classList.add('run'); else bar.style.width = '100%';
+  }
+  tabs.forEach(function (t, n) { t.addEventListener('click', function () { auto = false; clearInterval(timer); show(n); }); });
+  show(0);
+  timer = setInterval(function () { if (auto) show((cur + 1) % tabs.length); }, 6000);
+
+  var mv = document.querySelectorAll('#mv img'), m = 0;
+  setInterval(function () { mv[m].classList.remove('on'); m = (m + 1) % mv.length; mv[m].classList.add('on'); }, 1600);
+  var rec = document.getElementById('rec'), secs = 754;
+  setInterval(function () { secs++; var h = Math.floor(secs / 3600), mi = Math.floor(secs / 60) % 60, se = secs % 60;
+    rec.textContent = [h, mi, se].map(function (x) { return (x < 10 ? '0' : '') + x; }).join(':'); }, 1000);
+
+  var duo = document.querySelectorAll('#duo-screens img'), pad = document.getElementById('pad'), tb = document.getElementById('typebox');
+  var steps = ['r', 'r', 'ok', 'd', 'ok'], k = 0, j = 0, words = ['wild tide', 'last signal', 'the big match'], w = 0;
+  if (pad && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    setInterval(function () {
+      var s = steps[k % steps.length], el = s === 'ok' ? pad.querySelector('.ok') : pad.querySelector('i.' + s);
+      el.classList.add('hit'); setTimeout(function () { el.classList.remove('hit'); }, 260);
+      if (s === 'ok') { duo[j].classList.remove('on'); j = (j + 1) % duo.length; duo[j].classList.add('on'); }
+      k++;
+    }, 1100);
+    var typed = '';
+    setInterval(function () {
+      var target = words[w];
+      if (typed.length < target.length) typed = target.slice(0, typed.length + 1);
+      else { typed = ''; w = (w + 1) % words.length; }
+      tb.textContent = typed;
+    }, 220);
+  }
 })();
 </script>
 </body>
