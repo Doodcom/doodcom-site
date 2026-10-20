@@ -53,7 +53,7 @@ nav .wrap { display: flex; align-items: center; justify-content: space-between; 
 /* intro, as the app opens */
 #intro { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: grid; place-items: center; cursor: pointer; }
 #intro[hidden] { display: none; }
-#intro .logo { font-size: clamp(60px, 17vmin, 170px); pointer-events: none; }
+#intro .logo { font-size: min(17vmin, 11.5vw, 170px); white-space: nowrap; pointer-events: none; }
 .logo span.p { color: var(--lime); margin-left: .25em; }
 .links { display: flex; gap: 26px; align-items: center; font-size: 15px; }
 .links a { text-decoration: none; color: var(--dim); transition: color .2s; }
