@@ -101,6 +101,17 @@ footer a { color: #7c7e72; margin-right: 16px; }
         <a href="https://play.google.com/store/account/subscriptions" target="_blank" rel="noopener">Manage subscriptions</a>.</p>
     </section>
 
+    <section class="card" id="redeem-card">
+      <h2>Redeem a code</h2>
+      <p class="note">Been given a Doodcom code? It adds Pro to this account, for all your devices.</p>
+      <form id="redeem-form">
+        <label for="redeem-code">Code</label>
+        <input id="redeem-code" placeholder="DOOD-ABCD-EFGH-JKMN" autocomplete="off" autocapitalize="characters" spellcheck="false" required>
+        <button class="main" type="submit">Redeem</button>
+      </form>
+      <div id="redeem-msg" class="msg" hidden></div>
+    </section>
+
     <section class="card">
       <h2>Your devices</h2>
       <p class="note">Pro works on up to 5 devices signed in to this account. You can remove 2 every 30 days, to make room for a new one.</p>
@@ -176,6 +187,7 @@ footer a { color: #7c7e72; margin-right: 16px; }
     if (/invalid login credentials/i.test(m)) return 'That email and password don\'t match.';
     if (/expired|invalid.*token|otp/i.test(m)) return 'That code has expired or isn\'t right. Ask for a new one.';
     if (/password should be/i.test(m)) return 'Choose a password of at least 6 characters.';
+    if (/^too many tries/i.test(m)) return m;
     if (/rate limit|too many/i.test(m)) return 'Too many tries just now. Wait a few minutes, then try again.';
     return m;
   }
@@ -241,6 +253,7 @@ footer a { color: #7c7e72; margin-right: 16px; }
     var user = (await sb.auth.getUser()).data.user;
     if (!user) return show(false);
     show(true);
+    $('redeem-card').hidden = false;
     $('who').textContent = user.email;
     $('plan').textContent = '…';
     if (sb === clients.hub) {
@@ -248,6 +261,7 @@ footer a { color: #7c7e72; margin-right: 16px; }
       $('plan-note').textContent = 'Doodcom Hub and Doodcom TV are free, with every feature. Pro only applies to the Doodcom Player app on Google Play.';
       $('devices').innerHTML = '<p class="note">Device limits only apply to Pro in Doodcom Player.</p>';
       $('removals').textContent = '';
+      $('redeem-card').hidden = true;
       return;
     }
     try {
@@ -259,7 +273,8 @@ footer a { color: #7c7e72; margin-right: 16px; }
         $('plan-note').textContent = 'Doodcom TV and Doodcom Hub are free, with every feature. Pro is for the Doodcom Player app on Google Play: Settings, then Pro.';
       } else {
         $('plan').textContent = best.tier === 'lifetime' ? 'Pro · lifetime' : best.tier === 'year' ? 'Pro · yearly' : 'Pro · monthly';
-        $('plan-note').textContent = best.tier === 'lifetime' ? 'Yours for good. Thank you!' : 'Paid up until ' + date(best.expires) + '.';
+        $('plan-note').textContent = best.tier === 'lifetime' ? 'Yours for good. Thank you!'
+          : (best.product === 'code' ? 'From a code, until ' : 'Paid up until ') + date(best.expires) + '.';
       }
       drawDevices(j);
     } catch (e) {
@@ -310,6 +325,20 @@ footer a { color: #7c7e72; margin-right: 16px; }
     if (u.error) return say('reset-msg', words(u.error), true);
     $('reset-password').value = '';
     load();
+  };
+
+  $('redeem-form').onsubmit = async function (e) {
+    e.preventDefault();
+    var button = document.querySelector('#redeem-form button');
+    button.disabled = true;
+    say('redeem-msg', '');
+    try {
+      await pro({ action: 'redeem', code: $('redeem-code').value });
+      $('redeem-code').value = '';
+      say('redeem-msg', 'Your code worked. Pro is on your account: sign in to it in the app and Pro unlocks there.');
+      load();
+    } catch (err) { say('redeem-msg', words(err), true); }
+    button.disabled = false;
   };
 
   $('pw-form').onsubmit = async function (e) {
