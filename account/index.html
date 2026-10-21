@@ -79,7 +79,7 @@ footer a { color: #7c7e72; margin-right: 16px; }
   <section class="card" id="register" hidden>
     <h2>Create a free account</h2>
     <form id="register-form">
-      <label for="reg-name">Username (2 to 20 letters or numbers)</label>
+      <label for="reg-name">Username (2 to 20 letters or numbers; it can't be changed later)</label>
       <input id="reg-name" autocomplete="nickname" maxlength="20" pattern="[A-Za-z0-9 _.\-]{2,20}" required>
       <label for="reg-email">Email</label>
       <input id="reg-email" name="email" type="email" autocomplete="username" required>
@@ -116,7 +116,7 @@ footer a { color: #7c7e72; margin-right: 16px; }
     <!-- Accounts made before usernames: asked once, at the top -->
     <section class="card ask" id="ask-name" hidden>
       <h2>Choose a username</h2>
-      <p class="note" style="margin:0">This is the name shown on doodcom.com when you're signed in. You still sign in with your email.</p>
+      <p class="note" style="margin:0">This is the name shown on doodcom.com when you're signed in. Choose carefully: it can't be changed later. You still sign in with your email.</p>
       <form id="ask-form">
         <label for="ask-input">Username (2 to 20 letters or numbers)</label>
         <input id="ask-input" autocomplete="nickname" maxlength="20" pattern="[A-Za-z0-9 _.\-]{2,20}" required>
@@ -131,15 +131,6 @@ footer a { color: #7c7e72; margin-right: 16px; }
       <button class="soft" id="signout">Sign out</button>
     </section>
 
-    <section class="card">
-      <h2>Your username</h2>
-      <form id="name-form">
-        <label for="new-name">Username (2 to 20 letters or numbers)</label>
-        <input id="new-name" autocomplete="nickname" maxlength="20" pattern="[A-Za-z0-9 _.\-]{2,20}" required>
-        <button class="main" type="submit">Save username</button>
-      </form>
-      <div id="name-msg" class="msg" hidden></div>
-    </section>
 
     <section class="card">
       <h2>Your plan</h2>
@@ -342,8 +333,8 @@ footer a { color: #7c7e72; margin-right: 16px; }
     $('redeem-card').hidden = false;
     $('who').textContent = user.email;
     $('who-name').textContent = nameOf(user);
-    $('new-name').value = (user.user_metadata && user.user_metadata.username) || '';
-    $('ask-name').hidden = !!$('new-name').value;
+    // A username is chosen once (when registering, or here for older accounts) and can't be changed.
+    $('ask-name').hidden = !!(user.user_metadata && user.user_metadata.username);
     $('plan').textContent = '…';
     if (sb === clients.hub) {
       $('plan').textContent = 'Full access';
@@ -462,11 +453,8 @@ footer a { color: #7c7e72; margin-right: 16px; }
     var r = await sb.auth.updateUser({ data: { username: name } });
     if (r.error) return say(msg, words(r.error), true);
     $('who-name').textContent = name;
-    $('new-name').value = name;
     $('ask-name').hidden = true;
-    say('name-msg', 'Your username is now ' + name + '.');
   }
-  $('name-form').onsubmit = function (e) { e.preventDefault(); saveName($('new-name').value.trim(), 'name-msg'); };
   $('ask-form').onsubmit = function (e) { e.preventDefault(); saveName($('ask-input').value.trim(), 'ask-msg'); };
 
   $('pw-form').onsubmit = async function (e) {
