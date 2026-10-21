@@ -42,6 +42,7 @@ button:disabled { opacity: .5; cursor: default; }
 .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .home { color: var(--text); text-decoration: none; font-weight: 600; font-size: 15px; border: 1px solid #3a3a31; border-radius: 999px; padding: 8px 16px; white-space: nowrap; }
 .home:hover { border-color: var(--lime); }
+.card.ask { border-color: var(--lime); }
 [hidden] { display: none !important; }
 footer { margin-top: 40px; font-size: 14px; color: #7c7e72; }
 footer a { color: #7c7e72; margin-right: 16px; }
@@ -109,6 +110,17 @@ footer a { color: #7c7e72; margin-right: 16px; }
 
   <!-- Signed in -->
   <div id="account" hidden>
+    <!-- Accounts made before usernames: asked once, at the top -->
+    <section class="card ask" id="ask-name" hidden>
+      <h2>Choose a username</h2>
+      <p class="note" style="margin:0">This is the name shown on doodcom.com when you're signed in. You still sign in with your email.</p>
+      <form id="ask-form">
+        <label for="ask-input">Username (2 to 20 letters or numbers)</label>
+        <input id="ask-input" autocomplete="username" maxlength="20" pattern="[A-Za-z0-9 _.\-]{2,20}" required>
+        <button class="main" type="submit">Save username</button>
+      </form>
+      <div id="ask-msg" class="msg" hidden></div>
+    </section>
     <section class="card">
       <h2>Signed in as</h2>
       <div id="who-name" class="plan"></div>
@@ -299,6 +311,7 @@ footer a { color: #7c7e72; margin-right: 16px; }
     $('who').textContent = user.email;
     $('who-name').textContent = nameOf(user);
     $('new-name').value = (user.user_metadata && user.user_metadata.username) || '';
+    $('ask-name').hidden = !!$('new-name').value;
     $('plan').textContent = '…';
     if (sb === clients.hub) {
       $('plan').textContent = 'Full access';
@@ -410,15 +423,17 @@ footer a { color: #7c7e72; margin-right: 16px; }
     button.disabled = false;
   };
 
-  $('name-form').onsubmit = async function (e) {
-    e.preventDefault();
-    var name = $('new-name').value.trim();
-    if (!NAME_OK.test(name)) return say('name-msg', 'Choose a username of 2 to 20 letters or numbers.', true);
+  async function saveName(name, msg) {
+    if (!NAME_OK.test(name)) return say(msg, 'Choose a username of 2 to 20 letters or numbers.', true);
     var r = await sb.auth.updateUser({ data: { username: name } });
-    if (r.error) return say('name-msg', words(r.error), true);
+    if (r.error) return say(msg, words(r.error), true);
     $('who-name').textContent = name;
+    $('new-name').value = name;
+    $('ask-name').hidden = true;
     say('name-msg', 'Your username is now ' + name + '.');
-  };
+  }
+  $('name-form').onsubmit = function (e) { e.preventDefault(); saveName($('new-name').value.trim(), 'name-msg'); };
+  $('ask-form').onsubmit = function (e) { e.preventDefault(); saveName($('ask-input').value.trim(), 'ask-msg'); };
 
   $('pw-form').onsubmit = async function (e) {
     e.preventDefault();
