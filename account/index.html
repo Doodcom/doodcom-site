@@ -39,6 +39,9 @@ button:disabled { opacity: .5; cursor: default; }
 .msg.bad { background: rgba(255,107,90,.12); color: #ffb4aa; }
 .plan { font-family: "Big Shoulders", sans-serif; font-weight: 900; font-size: 30px; text-transform: uppercase; }
 .lime { color: var(--lime); }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.home { color: var(--text); text-decoration: none; font-weight: 600; font-size: 15px; border: 1px solid #3a3a31; border-radius: 999px; padding: 8px 16px; white-space: nowrap; }
+.home:hover { border-color: var(--lime); }
 [hidden] { display: none !important; }
 footer { margin-top: 40px; font-size: 14px; color: #7c7e72; }
 footer a { color: #7c7e72; margin-right: 16px; }
@@ -46,9 +49,12 @@ footer a { color: #7c7e72; margin-right: 16px; }
 </head>
 <body>
 <main>
-  <a class="logo" href="/" aria-label="Doodcom home"><span>D</span><span class="eyes"><i></i><i></i></span><span>DCOM</span><span class="p">PLAYER</span></a>
+  <div class="top">
+    <a class="logo" href="/" aria-label="Doodcom home"><span>D</span><span class="eyes"><i></i><i></i></span><span>DCOM</span><span class="p">PLAYER</span></a>
+    <a class="home" href="/">&larr; Back to home</a>
+  </div>
   <h1>My <span class="lime">account</span></h1>
-  <p class="note" id="lead">Sign in with the email and password you use in the Doodcom Player app.</p>
+  <p class="note" id="lead">Sign in, or create a free Doodcom account. It's the same account you use in the Doodcom apps.</p>
 
   <!-- Signed out -->
   <section class="card" id="signin">
@@ -62,7 +68,21 @@ footer a { color: #7c7e72; margin-right: 16px; }
       <button class="soft" type="button" id="forgot">Forgot password?</button>
     </form>
     <div id="signin-msg" class="msg" hidden></div>
-    <p class="note" style="margin-top:18px">No account yet? Create one free in the Doodcom Player app: Settings, then Sync.</p>
+    <p class="note" style="margin:18px 0 0">No account yet? <a href="#register" id="to-register">Create a free account</a></p>
+  </section>
+
+  <!-- New account -->
+  <section class="card" id="register" hidden>
+    <h2>Create a free account</h2>
+    <form id="register-form">
+      <label for="reg-email">Email</label>
+      <input id="reg-email" type="email" autocomplete="email" required>
+      <label for="reg-password">Password (at least 6 characters)</label>
+      <input id="reg-password" type="password" autocomplete="new-password" minlength="6" required>
+      <button class="main" type="submit">Create account</button>
+    </form>
+    <div id="register-msg" class="msg" hidden></div>
+    <p class="note" style="margin:18px 0 0">Already have one? <a href="#signin" id="to-signin">Sign in</a>. Use the same email and password in the Doodcom apps: Settings, then Sync.</p>
   </section>
 
   <!-- Forgotten password: a code by email, then a new password -->
@@ -196,6 +216,8 @@ footer a { color: #7c7e72; margin-right: 16px; }
   function show(signedIn) {
     $('signin').hidden = signedIn;
     $('reset').hidden = true;
+    $('register').hidden = true;
+    if (!signedIn && location.hash === '#register') { $('signin').hidden = true; $('register').hidden = false; }
     $('account').hidden = !signedIn;
     $('lead').hidden = signedIn;
   }
@@ -294,6 +316,30 @@ footer a { color: #7c7e72; margin-right: 16px; }
       if (h.error) return say('signin-msg', words(r.error), true);
     }
     $('password').value = '';
+    load();
+  };
+  $('to-register').onclick = function (e) {
+    e.preventDefault(); history.replaceState(null, '', '#register'); show(false);
+    $('reg-email').value = $('email').value; say('register-msg', '');
+  };
+  $('to-signin').onclick = function (e) {
+    e.preventDefault(); history.replaceState(null, '', '#signin'); show(false);
+  };
+  $('register-form').onsubmit = async function (e) {
+    e.preventDefault();
+    say('register-msg', '');
+    var email = $('reg-email').value.trim(), pw = $('reg-password').value;
+    // An account made in the original Doodcom Hub app already signs in here.
+    var old = await clients.hub.auth.signInWithPassword({ email: email, password: pw });
+    if (!old.error) { $('reg-password').value = ''; return load(); }
+    var r = await clients.main.auth.signUp({ email: email, password: pw });
+    if (r.error) {
+      if (/already registered|already exists/i.test(r.error.message || '')) return say('register-msg', 'There\'s already an account for that email. Sign in instead.', true);
+      return say('register-msg', words(r.error), true);
+    }
+    $('reg-password').value = '';
+    if (!r.data.session) return say('register-msg', 'Check your email to confirm your account, then sign in.');
+    history.replaceState(null, '', location.pathname);
     load();
   };
   $('signout').onclick = async function () { await clients.main.auth.signOut(); await clients.hub.auth.signOut(); show(false); };
