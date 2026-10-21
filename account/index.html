@@ -75,6 +75,8 @@ footer a { color: #7c7e72; margin-right: 16px; }
   <section class="card" id="register" hidden>
     <h2>Create a free account</h2>
     <form id="register-form">
+      <label for="reg-name">Username (2 to 20 letters or numbers)</label>
+      <input id="reg-name" autocomplete="username" maxlength="20" pattern="[A-Za-z0-9 _.\-]{2,20}" required>
       <label for="reg-email">Email</label>
       <input id="reg-email" type="email" autocomplete="email" required>
       <label for="reg-password">Password (at least 6 characters)</label>
@@ -109,8 +111,19 @@ footer a { color: #7c7e72; margin-right: 16px; }
   <div id="account" hidden>
     <section class="card">
       <h2>Signed in as</h2>
-      <div id="who" style="font-weight:600"></div>
+      <div id="who-name" class="plan"></div>
+      <div id="who" class="note" style="margin:0"></div>
       <button class="soft" id="signout">Sign out</button>
+    </section>
+
+    <section class="card">
+      <h2>Your username</h2>
+      <form id="name-form">
+        <label for="new-name">Username (2 to 20 letters or numbers)</label>
+        <input id="new-name" autocomplete="username" maxlength="20" pattern="[A-Za-z0-9 _.\-]{2,20}" required>
+        <button class="main" type="submit">Save username</button>
+      </form>
+      <div id="name-msg" class="msg" hidden></div>
     </section>
 
     <section class="card">
@@ -213,6 +226,13 @@ footer a { color: #7c7e72; margin-right: 16px; }
   }
   function date(iso) { return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }); }
 
+  // The name shown on the site: the username chosen, or the start of the email for older accounts.
+  function nameOf(user) {
+    var n = user && user.user_metadata && user.user_metadata.username;
+    return n || (user && user.email ? user.email.split('@')[0] : '');
+  }
+  var NAME_OK = /^[A-Za-z0-9 _.\-]{2,20}$/;
+
   function show(signedIn) {
     $('signin').hidden = signedIn;
     $('reset').hidden = true;
@@ -277,6 +297,8 @@ footer a { color: #7c7e72; margin-right: 16px; }
     show(true);
     $('redeem-card').hidden = false;
     $('who').textContent = user.email;
+    $('who-name').textContent = nameOf(user);
+    $('new-name').value = (user.user_metadata && user.user_metadata.username) || '';
     $('plan').textContent = '…';
     if (sb === clients.hub) {
       $('plan').textContent = 'Full access';
@@ -328,11 +350,12 @@ footer a { color: #7c7e72; margin-right: 16px; }
   $('register-form').onsubmit = async function (e) {
     e.preventDefault();
     say('register-msg', '');
-    var email = $('reg-email').value.trim(), pw = $('reg-password').value;
+    var email = $('reg-email').value.trim(), pw = $('reg-password').value, name = $('reg-name').value.trim();
+    if (!NAME_OK.test(name)) return say('register-msg', 'Choose a username of 2 to 20 letters or numbers.', true);
     // An account made in the original Doodcom Hub app already signs in here.
     var old = await clients.hub.auth.signInWithPassword({ email: email, password: pw });
     if (!old.error) { $('reg-password').value = ''; return load(); }
-    var r = await clients.main.auth.signUp({ email: email, password: pw });
+    var r = await clients.main.auth.signUp({ email: email, password: pw, options: { data: { username: name } } });
     if (r.error) {
       if (/already registered|already exists/i.test(r.error.message || '')) return say('register-msg', 'There\'s already an account for that email. Sign in instead.', true);
       return say('register-msg', words(r.error), true);
@@ -385,6 +408,16 @@ footer a { color: #7c7e72; margin-right: 16px; }
       load();
     } catch (err) { say('redeem-msg', words(err), true); }
     button.disabled = false;
+  };
+
+  $('name-form').onsubmit = async function (e) {
+    e.preventDefault();
+    var name = $('new-name').value.trim();
+    if (!NAME_OK.test(name)) return say('name-msg', 'Choose a username of 2 to 20 letters or numbers.', true);
+    var r = await sb.auth.updateUser({ data: { username: name } });
+    if (r.error) return say('name-msg', words(r.error), true);
+    $('who-name').textContent = name;
+    say('name-msg', 'Your username is now ' + name + '.');
   };
 
   $('pw-form').onsubmit = async function (e) {

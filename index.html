@@ -62,6 +62,7 @@ nav .wrap { display: flex; align-items: center; justify-content: space-between; 
 .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 -2px rgba(200,244,50,.25); }
 .btn.ghost { background: transparent; color: var(--text) !important; border: 1px solid #3a3a31; }
 .btn.small { padding: 9px 18px; font-size: 15px; }
+#nav [hidden] { display: none !important; }
 .soon { cursor: default; }
 .soon:hover { transform: none; box-shadow: none; }
 
@@ -321,11 +322,31 @@ footer .logo { font-size: 24px; margin-bottom: 8px; }
       <a href="#remote">Remote</a>
       <a href="#devices">Devices</a>
       <a href="#faq">Questions</a>
-      <a class="btn small ghost" href="/account/#register">Register</a>
-      <a class="btn small" href="/account/">Sign in</a>
+      <a class="btn small ghost" href="/account/#register" data-out>Register</a>
+      <a class="btn small" href="/account/" data-out>Sign in</a>
+      <a class="btn small" href="/account/" id="me" hidden></a>
     </div>
   </div>
 </nav>
+<script>
+// Signed in on doodcom.com/account: show the username instead of Register / Sign in.
+(function () {
+  try {
+    for (var key of ['doodcom-main', 'doodcom-hub']) {
+      var s = JSON.parse(localStorage.getItem(key) || 'null');
+      var u = s && (s.user || (s.currentSession && s.currentSession.user));
+      if (!u) continue;
+      var name = (u.user_metadata && u.user_metadata.username) || (u.email || '').split('@')[0];
+      var me = document.getElementById('me');
+      me.textContent = name || 'My account';
+      me.title = 'My account';
+      me.hidden = false;
+      document.querySelectorAll('#nav [data-out]').forEach(function (a) { a.hidden = true; });
+      return;
+    }
+  } catch (e) {}
+})();
+</script>
 
 <header class="hero">
   <div class="wrap">
