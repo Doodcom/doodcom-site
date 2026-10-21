@@ -43,6 +43,8 @@ button:disabled { opacity: .5; cursor: default; }
 .home { color: var(--text); text-decoration: none; font-weight: 600; font-size: 15px; border: 1px solid #3a3a31; border-radius: 999px; padding: 8px 16px; white-space: nowrap; }
 .home:hover { border-color: var(--lime); }
 .card.ask { border-color: var(--lime); }
+.check { display: flex; gap: 10px; align-items: center; color: var(--text); font-size: 15px; margin-top: 16px; cursor: pointer; }
+.check input { width: 20px; height: 20px; accent-color: var(--lime); margin: 0; }
 [hidden] { display: none !important; }
 footer { margin-top: 40px; font-size: 14px; color: #7c7e72; }
 footer a { color: #7c7e72; margin-right: 16px; }
@@ -62,9 +64,10 @@ footer a { color: #7c7e72; margin-right: 16px; }
     <h2>Sign in</h2>
     <form id="signin-form">
       <label for="email">Email</label>
-      <input id="email" type="email" autocomplete="email" required>
+      <input id="email" name="email" type="email" autocomplete="username" required>
       <label for="password">Password</label>
-      <input id="password" type="password" autocomplete="current-password" required>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+      <label class="check"><input id="remember" type="checkbox" checked> Keep me signed in for 30 days</label>
       <button class="main" type="submit">Sign in</button>
       <button class="soft" type="button" id="forgot">Forgot password?</button>
     </form>
@@ -77,9 +80,9 @@ footer a { color: #7c7e72; margin-right: 16px; }
     <h2>Create a free account</h2>
     <form id="register-form">
       <label for="reg-name">Username (2 to 20 letters or numbers)</label>
-      <input id="reg-name" autocomplete="username" maxlength="20" pattern="[A-Za-z0-9 _.\-]{2,20}" required>
+      <input id="reg-name" autocomplete="nickname" maxlength="20" pattern="[A-Za-z0-9 _.\-]{2,20}" required>
       <label for="reg-email">Email</label>
-      <input id="reg-email" type="email" autocomplete="email" required>
+      <input id="reg-email" name="email" type="email" autocomplete="username" required>
       <label for="reg-password">Password (at least 6 characters)</label>
       <input id="reg-password" type="password" autocomplete="new-password" minlength="6" required>
       <button class="main" type="submit">Create account</button>
@@ -116,7 +119,7 @@ footer a { color: #7c7e72; margin-right: 16px; }
       <p class="note" style="margin:0">This is the name shown on doodcom.com when you're signed in. You still sign in with your email.</p>
       <form id="ask-form">
         <label for="ask-input">Username (2 to 20 letters or numbers)</label>
-        <input id="ask-input" autocomplete="username" maxlength="20" pattern="[A-Za-z0-9 _.\-]{2,20}" required>
+        <input id="ask-input" autocomplete="nickname" maxlength="20" pattern="[A-Za-z0-9 _.\-]{2,20}" required>
         <button class="main" type="submit">Save username</button>
       </form>
       <div id="ask-msg" class="msg" hidden></div>
@@ -132,7 +135,7 @@ footer a { color: #7c7e72; margin-right: 16px; }
       <h2>Your username</h2>
       <form id="name-form">
         <label for="new-name">Username (2 to 20 letters or numbers)</label>
-        <input id="new-name" autocomplete="username" maxlength="20" pattern="[A-Za-z0-9 _.\-]{2,20}" required>
+        <input id="new-name" autocomplete="nickname" maxlength="20" pattern="[A-Za-z0-9 _.\-]{2,20}" required>
         <button class="main" type="submit">Save username</button>
       </form>
       <div id="name-msg" class="msg" hidden></div>
@@ -207,9 +210,28 @@ footer a { color: #7c7e72; margin-right: 16px; }
   var HUB_URL = 'https://hendjzacgrlwwdpcrbeu.supabase.co', HUB_KEY = 'sb_publishable_y-Jyjl3ecWo_Tha385heFw_qj5P4UX3';
   // Accounts live on the shared Doodcom project; the few made in the original Doodcom Hub app
   // before sign-in was shared live on Hub's own. Either signs in here.
+  // "Keep me signed in": the sign-in is kept for 30 days on this device; without it, only until
+  // the browser is closed (sessionStorage).
+  var REMEMBER = 'doodcom-remember', SINCE = 'doodcom-signed-in', DAYS = 30;
+  function remember() { try { return localStorage.getItem(REMEMBER) !== '0'; } catch (e) { return true; } }
+  var storage = {
+    getItem: function (k) { try { return localStorage.getItem(k) || sessionStorage.getItem(k); } catch (e) { return null; } },
+    setItem: function (k, v) {
+      try {
+        var keep = remember();
+        (keep ? localStorage : sessionStorage).setItem(k, v);
+        (keep ? sessionStorage : localStorage).removeItem(k);
+      } catch (e) {}
+    },
+    removeItem: function (k) { try { localStorage.removeItem(k); sessionStorage.removeItem(k); } catch (e) {} },
+  };
+  function startSignIn(keep) {
+    try { localStorage.setItem(REMEMBER, keep ? '1' : '0'); localStorage.setItem(SINCE, String(Date.now())); } catch (e) {}
+  }
+  var opts = function (key) { return { auth: { persistSession: true, autoRefreshToken: true, storageKey: key, storage: storage } }; };
   var clients = {
-    main: supabase.createClient(URL_, KEY, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'doodcom-main' } }),
-    hub: supabase.createClient(HUB_URL, HUB_KEY, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'doodcom-hub' } }),
+    main: supabase.createClient(URL_, KEY, opts('doodcom-main')),
+    hub: supabase.createClient(HUB_URL, HUB_KEY, opts('doodcom-hub')),
   };
   var sb = clients.main;
   async function findSession() {
@@ -304,6 +326,16 @@ footer a { color: #7c7e72; margin-right: 16px; }
 
   async function load() {
     if (!(await findSession())) return show(false);
+    // Kept signed in for 30 days at most; then the password is asked for again.
+    try {
+      var since = Number(localStorage.getItem(SINCE));
+      if (!since) localStorage.setItem(SINCE, String(Date.now()));
+      else if (Date.now() - since > DAYS * 86400000) {
+        await clients.main.auth.signOut(); await clients.hub.auth.signOut();
+        show(false);
+        return say('signin-msg', 'It\'s been 30 days, so please sign in again.');
+      }
+    } catch (e) {}
     var user = (await sb.auth.getUser()).data.user;
     if (!user) return show(false);
     show(true);
@@ -345,6 +377,7 @@ footer a { color: #7c7e72; margin-right: 16px; }
     e.preventDefault();
     say('signin-msg', '');
     var email = $('email').value.trim(), pw = $('password').value;
+    startSignIn($('remember').checked);
     var r = await clients.main.auth.signInWithPassword({ email: email, password: pw });
     if (r.error) {
       var h = await clients.hub.auth.signInWithPassword({ email: email, password: pw });
@@ -365,6 +398,7 @@ footer a { color: #7c7e72; margin-right: 16px; }
     say('register-msg', '');
     var email = $('reg-email').value.trim(), pw = $('reg-password').value, name = $('reg-name').value.trim();
     if (!NAME_OK.test(name)) return say('register-msg', 'Choose a username of 2 to 20 letters or numbers.', true);
+    startSignIn(true);
     // An account made in the original Doodcom Hub app already signs in here.
     var old = await clients.hub.auth.signInWithPassword({ email: email, password: pw });
     if (!old.error) { $('reg-password').value = ''; return load(); }

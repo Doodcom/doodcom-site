@@ -333,7 +333,7 @@ footer .logo { font-size: 24px; margin-bottom: 8px; }
 (function () {
   try {
     for (var key of ['doodcom-main', 'doodcom-hub']) {
-      var s = JSON.parse(localStorage.getItem(key) || 'null');
+      var s = JSON.parse(localStorage.getItem(key) || sessionStorage.getItem(key) || 'null');
       var u = s && (s.user || (s.currentSession && s.currentSession.user));
       if (!u) continue;
       var name = (u.user_metadata && u.user_metadata.username) || (u.email || '').split('@')[0];
