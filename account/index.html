@@ -148,7 +148,21 @@ footer a { color: #7c7e72; margin-right: 16px; }
   // The public address and key every Doodcom app ships with: on their own they can only sign in,
   // and the server keeps each account to its own data.
   var URL_ = 'https://bypxzoyyrcirzsrmxjmj.supabase.co', KEY = 'sb_publishable_S3Tgb-hHsJ4j2GQ4qTjYnA_qlL1j4w0';
-  var sb = supabase.createClient(URL_, KEY, { auth: { persistSession: true, autoRefreshToken: true } });
+  var HUB_URL = 'https://hendjzacgrlwwdpcrbeu.supabase.co', HUB_KEY = 'sb_publishable_y-Jyjl3ecWo_Tha385heFw_qj5P4UX3';
+  // Accounts live on the shared Doodcom project; the few made in the original Doodcom Hub app
+  // before sign-in was shared live on Hub's own. Either signs in here.
+  var clients = {
+    main: supabase.createClient(URL_, KEY, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'doodcom-main' } }),
+    hub: supabase.createClient(HUB_URL, HUB_KEY, { auth: { persistSession: true, autoRefreshToken: true, storageKey: 'doodcom-hub' } }),
+  };
+  var sb = clients.main;
+  async function findSession() {
+    for (var name of ['main', 'hub']) {
+      var s = (await clients[name].auth.getSession()).data.session;
+      if (s) { sb = clients[name]; sb.which = name; return s; }
+    }
+    return null;
+  }
   var $ = function (id) { return document.getElementById(id); };
 
   function say(id, text, bad) {
@@ -223,18 +237,26 @@ footer a { color: #7c7e72; margin-right: 16px; }
   }
 
   async function load() {
+    if (!(await findSession())) return show(false);
     var user = (await sb.auth.getUser()).data.user;
     if (!user) return show(false);
     show(true);
     $('who').textContent = user.email;
     $('plan').textContent = '…';
+    if (sb === clients.hub) {
+      $('plan').textContent = 'Full access';
+      $('plan-note').textContent = 'Doodcom Hub and Doodcom TV are free, with every feature. Pro only applies to the Doodcom Player app on Google Play.';
+      $('devices').innerHTML = '<p class="note">Device limits only apply to Pro in Doodcom Player.</p>';
+      $('removals').textContent = '';
+      return;
+    }
     try {
       var j = await pro({ action: 'account' });
       var current = (j.plans || []).filter(function (p) { return p.current; });
       var best = current.find(function (p) { return p.tier === 'lifetime'; }) || current[0];
       if (!best) {
         $('plan').textContent = 'Free';
-        $('plan-note').textContent = 'Get Pro in the Doodcom Player app: Settings, then Pro.';
+        $('plan-note').textContent = 'Doodcom TV and Doodcom Hub are free, with every feature. Pro is for the Doodcom Player app on Google Play: Settings, then Pro.';
       } else {
         $('plan').textContent = best.tier === 'lifetime' ? 'Pro · lifetime' : best.tier === 'year' ? 'Pro · yearly' : 'Pro · monthly';
         $('plan-note').textContent = best.tier === 'lifetime' ? 'Yours for good. Thank you!' : 'Paid up until ' + date(best.expires) + '.';
@@ -250,12 +272,16 @@ footer a { color: #7c7e72; margin-right: 16px; }
   $('signin-form').onsubmit = async function (e) {
     e.preventDefault();
     say('signin-msg', '');
-    var r = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('password').value });
-    if (r.error) return say('signin-msg', words(r.error), true);
+    var email = $('email').value.trim(), pw = $('password').value;
+    var r = await clients.main.auth.signInWithPassword({ email: email, password: pw });
+    if (r.error) {
+      var h = await clients.hub.auth.signInWithPassword({ email: email, password: pw });
+      if (h.error) return say('signin-msg', words(r.error), true);
+    }
     $('password').value = '';
     load();
   };
-  $('signout').onclick = async function () { await sb.auth.signOut(); show(false); };
+  $('signout').onclick = async function () { await clients.main.auth.signOut(); await clients.hub.auth.signOut(); show(false); };
 
   $('forgot').onclick = function () {
     $('signin').hidden = true; $('reset').hidden = false;
@@ -266,15 +292,21 @@ footer a { color: #7c7e72; margin-right: 16px; }
   document.querySelector('#reset-ask .soft').onclick = function () { show(false); };
   $('reset-ask').onsubmit = async function (e) {
     e.preventDefault();
-    var r = await sb.auth.resetPasswordForEmail($('reset-email').value.trim());
+    var em = $('reset-email').value.trim();
+    // Asks both servers: only the one holding this address sends a code (the other says nothing).
+    var r = await clients.main.auth.resetPasswordForEmail(em);
+    await clients.hub.auth.resetPasswordForEmail(em);
     if (r.error) return say('reset-msg', words(r.error), true);
     $('reset-ask').hidden = true; $('reset-set').hidden = false; say('reset-msg', '');
   };
   $('reset-set').onsubmit = async function (e) {
     e.preventDefault();
-    var v = await sb.auth.verifyOtp({ email: $('reset-email').value.trim(), token: $('reset-code').value.trim(), type: 'recovery' });
+    var em2 = $('reset-email').value.trim(), code = $('reset-code').value.trim();
+    var v = await clients.main.auth.verifyOtp({ email: em2, token: code, type: 'recovery' });
+    var which = clients.main;
+    if (v.error) { v = await clients.hub.auth.verifyOtp({ email: em2, token: code, type: 'recovery' }); which = clients.hub; }
     if (v.error) return say('reset-msg', words(v.error), true);
-    var u = await sb.auth.updateUser({ password: $('reset-password').value });
+    var u = await which.auth.updateUser({ password: $('reset-password').value });
     if (u.error) return say('reset-msg', words(u.error), true);
     $('reset-password').value = '';
     load();
