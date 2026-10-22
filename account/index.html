@@ -110,6 +110,8 @@ footer a { color: #7c7e72; margin-right: 16px; }
       <input id="reset-code" inputmode="numeric" autocomplete="one-time-code" required>
       <label for="reset-password">New password (at least 6 characters)</label>
       <input id="reset-password" type="password" autocomplete="new-password" minlength="6" required>
+      <label for="reset-password2">Confirm new password</label>
+      <input id="reset-password2" type="password" autocomplete="new-password" minlength="6" required>
       <button class="main" type="submit">Set new password</button>
     </form>
     <div id="reset-msg" class="msg" hidden></div>
@@ -433,6 +435,7 @@ footer a { color: #7c7e72; margin-right: 16px; }
   };
   $('reset-set').onsubmit = async function (e) {
     e.preventDefault();
+    if ($('reset-password').value !== $('reset-password2').value) return say('reset-msg', 'The two passwords don\'t match.', true);
     var em2 = $('reset-email').value.trim(), code = $('reset-code').value.trim();
     var v = await clients.main.auth.verifyOtp({ email: em2, token: code, type: 'recovery' });
     var which = clients.main;
