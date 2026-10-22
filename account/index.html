@@ -83,8 +83,12 @@ footer a { color: #7c7e72; margin-right: 16px; }
       <input id="reg-name" autocomplete="nickname" maxlength="20" pattern="[A-Za-z0-9 _.\-]{2,20}" required>
       <label for="reg-email">Email</label>
       <input id="reg-email" name="email" type="email" autocomplete="username" required>
+      <label for="reg-email2">Confirm email</label>
+      <input id="reg-email2" type="email" autocomplete="off" required>
       <label for="reg-password">Password (at least 6 characters)</label>
       <input id="reg-password" type="password" autocomplete="new-password" minlength="6" required>
+      <label for="reg-password2">Confirm password</label>
+      <input id="reg-password2" type="password" autocomplete="new-password" minlength="6" required>
       <button class="main" type="submit">Create account</button>
     </form>
     <div id="register-msg" class="msg" hidden></div>
@@ -164,6 +168,8 @@ footer a { color: #7c7e72; margin-right: 16px; }
       <form id="pw-form">
         <label for="new-password">New password (at least 6 characters)</label>
         <input id="new-password" type="password" autocomplete="new-password" minlength="6" required>
+        <label for="new-password2">Confirm new password</label>
+        <input id="new-password2" type="password" autocomplete="new-password" minlength="6" required>
         <button class="main" type="submit">Change password</button>
       </form>
       <div id="pw-msg" class="msg" hidden></div>
@@ -174,6 +180,8 @@ footer a { color: #7c7e72; margin-right: 16px; }
       <form id="email-form">
         <label for="new-email">New email</label>
         <input id="new-email" type="email" autocomplete="email" required>
+        <label for="new-email2">Confirm new email</label>
+        <input id="new-email2" type="email" autocomplete="off" required>
         <button class="main" type="submit">Change email</button>
       </form>
       <div id="email-msg" class="msg" hidden></div>
@@ -389,6 +397,8 @@ footer a { color: #7c7e72; margin-right: 16px; }
     say('register-msg', '');
     var email = $('reg-email').value.trim(), pw = $('reg-password').value, name = $('reg-name').value.trim();
     if (!NAME_OK.test(name)) return say('register-msg', 'Choose a username of 2 to 20 letters or numbers.', true);
+    if (email.toLowerCase() !== $('reg-email2').value.trim().toLowerCase()) return say('register-msg', 'The two email addresses don\'t match.', true);
+    if (pw !== $('reg-password2').value) return say('register-msg', 'The two passwords don\'t match.', true);
     startSignIn(true);
     // An account made in the original Doodcom Hub app already signs in here.
     var old = await clients.hub.auth.signInWithPassword({ email: email, password: pw });
@@ -398,7 +408,7 @@ footer a { color: #7c7e72; margin-right: 16px; }
       if (/already registered|already exists/i.test(r.error.message || '')) return say('register-msg', 'There\'s already an account for that email. Sign in instead.', true);
       return say('register-msg', words(r.error), true);
     }
-    $('reg-password').value = '';
+    $('reg-password').value = ''; $('reg-password2').value = '';
     if (!r.data.session) return say('register-msg', 'Check your email to confirm your account, then sign in.');
     history.replaceState(null, '', location.pathname);
     load();
@@ -459,12 +469,15 @@ footer a { color: #7c7e72; margin-right: 16px; }
 
   $('pw-form').onsubmit = async function (e) {
     e.preventDefault();
+    if ($('new-password').value !== $('new-password2').value) return say('pw-msg', 'The two passwords don\'t match.', true);
     var r = await sb.auth.updateUser({ password: $('new-password').value });
     $('new-password').value = '';
+    $('new-password2').value = '';
     say('pw-msg', r.error ? words(r.error) : 'Your password has been changed. Use the new one in the app next time you sign in.', !!r.error);
   };
   $('email-form').onsubmit = async function (e) {
     e.preventDefault();
+    if ($('new-email').value.trim().toLowerCase() !== $('new-email2').value.trim().toLowerCase()) return say('email-msg', 'The two email addresses don\'t match.', true);
     var r = await sb.auth.updateUser({ email: $('new-email').value.trim() });
     if (r.error) return say('email-msg', words(r.error), true);
     var now = r.data && r.data.user && r.data.user.email;
