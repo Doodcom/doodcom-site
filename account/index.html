@@ -382,8 +382,8 @@ footer a { color: #7c7e72; margin-right: 16px; }
     if (sb === clients.hub) {
       if (BUY) say('plan-msg', 'This is an older Doodcom Hub account, which can\'t take Pro. Email support@doodcom.com and we\'ll sort it out.', true);
       $('plan').textContent = 'Full access';
-      $('plan-note').textContent = 'Doodcom Hub and Doodcom TV are free, with every feature. Pro only applies to the Doodcom Player app on Google Play.';
-      $('devices').innerHTML = '<p class="note">Device limits only apply to Pro in Doodcom Player.</p>';
+      $('plan-note').textContent = 'This is an older Doodcom Hub account, which can\'t hold Pro. To get Pro, make a free Doodcom account here and sign in to the app with it.';
+      $('devices').innerHTML = '<p class="note">Devices are listed for Doodcom accounts with Pro.</p>';
       $('removals').textContent = '';
       $('redeem-card').hidden = true;
       return;
@@ -394,7 +394,7 @@ footer a { color: #7c7e72; margin-right: 16px; }
       var best = current.find(function (p) { return p.tier === 'lifetime'; }) || current[0];
       if (!best) {
         $('plan').textContent = 'Free';
-        $('plan-note').textContent = 'Doodcom TV and Doodcom Hub are free, with every feature. Pro is for the Doodcom Player app on Google Play: Settings, then Pro.';
+        $('plan-note').innerHTML = 'Live TV and the TV guide are free. Pro adds films and series, catch-up, recording and more in Doodcom Player and Doodcom Hub: <a href="/pro/">get Pro</a>.';
       } else {
         $('plan').textContent = best.tier === 'lifetime' ? 'Pro · lifetime' : best.tier === 'year' ? 'Pro · yearly' : 'Pro · monthly';
         $('plan-note').textContent = best.tier === 'lifetime' ? 'Yours for good. Thank you!'
