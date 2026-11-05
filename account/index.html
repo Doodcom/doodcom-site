@@ -419,7 +419,9 @@ footer a { color: #7c7e72; margin-right: 16px; }
         if (best) {
           THANKS = false;
           history.replaceState(null, '', location.pathname);
-          say('plan-msg', 'Thank you! Pro is on your account. Sign in to Doodcom Player with this account to use it.');
+          var play = best.tier === 'lifetime' && current.some(function (p) { return /^pro_(month|year)$/.test(p.product); });
+          say('plan-msg', 'Thank you! Pro is on your account. Sign in to Doodcom Player with this account to use it.' +
+            (play ? ' You also have a Google Play subscription: cancel it in Google Play so you aren\'t charged for it again.' : ''));
         } else if (waited++ < 10) {
           say('plan-msg', 'Thank you! Your payment went through. Pro will show here in a moment…');
           setTimeout(load, 3000);
