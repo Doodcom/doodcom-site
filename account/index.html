@@ -142,8 +142,8 @@ footer a { color: #7c7e72; margin-right: 16px; }
       <h2>Your plan</h2>
       <div class="plan" id="plan">…</div>
       <p class="note" id="plan-note"></p>
-      <p class="note" style="margin-bottom:0">Monthly and yearly plans are paid and cancelled through Google Play:
-        <a href="https://play.google.com/store/account/subscriptions" target="_blank" rel="noopener">Manage subscriptions</a>.</p>
+      <div id="plan-msg" class="msg" hidden></div>
+      <p class="note" id="plan-manage" style="margin-bottom:0" hidden></p>
     </section>
 
     <section class="card" id="redeem-card">
@@ -250,6 +250,27 @@ footer a { color: #7c7e72; margin-right: 16px; }
   }
   var $ = function (id) { return document.getElementById(id); };
 
+  // doodcom.com/pro's buttons come here with ?buy=month|year|lifetime: once signed in, on to
+  // Stripe's payment page. Stripe brings buyers back with ?pro=thanks.
+  var query = new URLSearchParams(location.search);
+  var BUY = ['month', 'year', 'lifetime'].indexOf(query.get('buy')) >= 0 ? query.get('buy') : null;
+  var THANKS = query.get('pro') === 'thanks', waited = 0;
+  async function shop(plan) {
+    var session = (await clients.main.auth.getSession()).data.session;
+    var r = await fetch(URL_ + '/functions/v1/stripe-pro', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: KEY, Authorization: 'Bearer ' + session.access_token },
+      body: JSON.stringify({ action: 'checkout', plan: plan }),
+    });
+    var j = await r.json().catch(function () { return {}; });
+    if (!r.ok || !j.url) throw new Error(j.error || 'The shop isn\'t working just now. Try again in a moment.');
+    location.href = j.url;
+  }
+  var MANAGE = {
+    play: 'Paid and cancelled through Google Play: <a href="https://play.google.com/store/account/subscriptions" target="_blank" rel="noopener">Manage subscriptions</a>.',
+    stripe: 'Bought on doodcom.com. Manage or cancel it, and find your receipts, at <a href="https://link.com" target="_blank" rel="noopener">link.com</a> with the email you paid with.',
+  };
+
   function say(id, text, bad) {
     var el = $(id);
     el.textContent = text || '';
@@ -332,7 +353,11 @@ footer a { color: #7c7e72; margin-right: 16px; }
   }
 
   async function load() {
-    if (!(await findSession())) return show(false);
+    if (!(await findSession())) {
+      show(false);
+      if (BUY) say('signin-msg', 'Sign in, or create a free Doodcom account, to get Pro. It goes on your account, for all your devices.');
+      return;
+    }
     // Kept signed in for 30 days at most; then the password is asked for again.
     try {
       var since = Number(localStorage.getItem(SINCE));
@@ -352,7 +377,10 @@ footer a { color: #7c7e72; margin-right: 16px; }
     // A username is chosen once (when registering, or here for older accounts) and can't be changed.
     $('ask-name').hidden = !!(user.user_metadata && user.user_metadata.username);
     $('plan').textContent = '…';
+    say('plan-msg', '');
+    $('plan-manage').hidden = true;
     if (sb === clients.hub) {
+      if (BUY) say('plan-msg', 'This is an older Doodcom Hub account, which can\'t take Pro. Email support@doodcom.com and we\'ll sort it out.', true);
       $('plan').textContent = 'Full access';
       $('plan-note').textContent = 'Doodcom Hub and Doodcom TV are free, with every feature. Pro only applies to the Doodcom Player app on Google Play.';
       $('devices').innerHTML = '<p class="note">Device limits only apply to Pro in Doodcom Player.</p>';
@@ -371,6 +399,33 @@ footer a { color: #7c7e72; margin-right: 16px; }
         $('plan').textContent = best.tier === 'lifetime' ? 'Pro · lifetime' : best.tier === 'year' ? 'Pro · yearly' : 'Pro · monthly';
         $('plan-note').textContent = best.tier === 'lifetime' ? 'Yours for good. Thank you!'
           : (best.product === 'code' ? 'From a code, until ' : 'Paid up until ') + date(best.expires) + '.';
+        var where = /^pro_/.test(best.product) ? 'play' : /^stripe_/.test(best.product) ? 'stripe' : null;
+        if (where && best.tier !== 'lifetime') { $('plan-manage').innerHTML = MANAGE[where]; $('plan-manage').hidden = false; }
+      }
+      if (BUY) {
+        var buying = BUY;
+        BUY = null;
+        history.replaceState(null, '', location.pathname);
+        if (best && best.tier === 'lifetime') say('plan-msg', 'You already have Pro for good, so there\'s nothing to buy.');
+        else if (best && buying !== 'lifetime' && best.product !== 'code') {
+          say('plan-msg', 'You already have Pro until ' + date(best.expires) + '. To change to another plan, cancel this one first, or choose Lifetime.');
+        } else {
+          say('plan-msg', 'Taking you to the payment page…');
+          try { return await shop(buying); } catch (e) { say('plan-msg', words(e), true); }
+        }
+      }
+      if (THANKS) {
+        // Stripe tells Doodcom's server a moment after the payment page closes.
+        if (best) {
+          THANKS = false;
+          history.replaceState(null, '', location.pathname);
+          say('plan-msg', 'Thank you! Pro is on your account. Sign in to Doodcom Player with this account to use it.');
+        } else if (waited++ < 10) {
+          say('plan-msg', 'Thank you! Your payment went through. Pro will show here in a moment…');
+          setTimeout(load, 3000);
+        } else {
+          say('plan-msg', 'Your payment went through, but Pro hasn\'t reached your account yet. Reload this page in a minute, or email support@doodcom.com.', true);
+        }
       }
       drawDevices(j);
     } catch (e) {
